@@ -103,26 +103,27 @@ export class Player {
     this.attackSpeed = classData.attackSpeed;
     this.knockbackBonus = classData.knockbackMultiplier;
 
-    // Update visor color
-    if (this.visorMat && classData.color) {
-      this.visorMat.color.set(classData.color);
-    }
-
-    // Swap 3D character mesh safely inside modelContainer
+    // Swap 3D character mesh safely inside modelContainer with request tracking
     if (this.modelContainer) {
-      while (this.modelContainer.children.length > 0) {
-        const c = this.modelContainer.children[0];
-        this.modelContainer.remove(c);
-        if (c.geometry) c.geometry.dispose();
-        if (c.material) c.material.dispose();
-      }
+      const reqId = ++this.modelLoadRequestId;
 
       GlobalModelLoader.loadOBJWithMTL(classData.modelPath, classData.mtlPath).then((model) => {
+        if (reqId !== this.modelLoadRequestId) return; // Discard outdated model if class changed rapidly
+
+        while (this.modelContainer.children.length > 0) {
+          const c = this.modelContainer.children[0];
+          this.modelContainer.remove(c);
+          if (c.geometry) c.geometry.dispose();
+          if (c.material) c.material.dispose();
+        }
+
         if (model) {
           model.scale.set(0.9, 0.9, 0.9);
           model.position.set(0, -0.95, 0);
           this.modelContainer.add(model);
         }
+      }).catch((err) => {
+        console.warn('Could not load character model:', err);
       });
     }
 
@@ -132,7 +133,7 @@ export class Player {
         classData.weaponModel,
         classData.weaponMtl,
         classData.weaponType,
-        classData.color ? parseInt(classData.color.replace('#', '0x')) : 0x00ffff
+        classData.color || '#00f0ff'
       );
     }
   }
@@ -140,9 +141,7 @@ export class Player {
   buildCharacterMesh() {
     this.bodyGroup = new THREE.Group();
     this.group.add(this.bodyGroup);
-
-    const armorMat = new THREE.MeshStandardMaterial({ color: 0x1e2436, roughness: 0.45, metalness: 0.6 });
-    const goldMat = new THREE.MeshStandardMaterial({ color: 0xddaa33, metalness: 0.85, roughness: 0.25 });
+    this.modelLoadRequestId = 0;
 
     // Torso root
     this.torso = new THREE.Group();
@@ -153,32 +152,17 @@ export class Player {
     this.modelContainer = new THREE.Group();
     this.torso.add(this.modelContainer);
 
-    GlobalModelLoader.loadOBJWithMTL(this.currentClass.modelPath, this.currentClass.mtlPath).then((model) => {
-      if (model) {
-        model.scale.set(0.9, 0.9, 0.9);
-        model.position.set(0, -0.95, 0);
-        this.modelContainer.add(model);
-      }
-    });
-
-    // Head / Visor Anchor
+    // Head Anchor
     this.head = new THREE.Group();
     this.head.position.set(0, 0.72, 0);
     this.torso.add(this.head);
 
-    this.visorMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-    const visorGeo = new THREE.BoxGeometry(0.3, 0.08, 0.15);
-    const visor = new THREE.Mesh(visorGeo, this.visorMat);
-    visor.position.set(0, 0, 0.22);
-    this.head.add(visor);
-
-    // Arms & Hands
+    // Arms & Hands Joint Anchors
     this.rightArm = new THREE.Group();
     this.rightArm.position.set(0.48, 0.32, 0);
     this.torso.add(this.rightArm);
 
-    const handGeo = new THREE.SphereGeometry(0.12, 6, 6);
-    this.rightHand = new THREE.Mesh(handGeo, goldMat);
+    this.rightHand = new THREE.Group();
     this.rightHand.position.set(0, -0.45, 0.08);
     this.rightArm.add(this.rightHand);
 
@@ -186,25 +170,21 @@ export class Player {
     this.leftArm.position.set(-0.48, 0.32, 0);
     this.torso.add(this.leftArm);
 
-    this.leftHand = new THREE.Mesh(handGeo, goldMat);
+    this.leftHand = new THREE.Group();
     this.leftHand.position.set(0, -0.45, 0.08);
     this.leftArm.add(this.leftHand);
 
-    // Legs
-    const legGeo = new THREE.CylinderGeometry(0.13, 0.11, 0.55, 6);
+    // Legs Joint Anchors
     this.leftLeg = new THREE.Group();
     this.leftLeg.position.set(-0.2, 0.55, 0);
-    const legMeshL = new THREE.Mesh(legGeo, armorMat);
-    legMeshL.position.y = -0.28;
-    this.leftLeg.add(legMeshL);
     this.bodyGroup.add(this.leftLeg);
 
     this.rightLeg = new THREE.Group();
     this.rightLeg.position.set(0.2, 0.55, 0);
-    const legMeshR = new THREE.Mesh(legGeo, armorMat);
-    legMeshR.position.y = -0.28;
-    this.rightLeg.add(legMeshR);
     this.bodyGroup.add(this.rightLeg);
+
+    // Initial class model load
+    this.setClass(this.currentClass);
   }
 
   useStamina(amount) {

@@ -99,6 +99,12 @@ class Game {
     this.upgradeManager = new UpgradeManager();
     this.modMenu = new ModMenu(this);
 
+    // Preload all 4 character class models & weapons into cache for instantaneous 0ms swapping
+    Object.values(CHARACTER_CLASSES).forEach((cls) => {
+      GlobalModelLoader.loadOBJWithMTL(cls.modelPath, cls.mtlPath);
+      GlobalModelLoader.loadOBJWithMTL(cls.weaponModel, cls.weaponMtl);
+    });
+
     // Clock
     this.clock = new THREE.Clock();
   }
@@ -134,6 +140,13 @@ class Game {
 
     const startModal = document.getElementById('start-modal');
     if (startModal) startModal.style.display = 'none';
+
+    // Ensure focus is on document/canvas and flush initial click buffer
+    if (document.activeElement && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
+    window.focus();
+    this.input.flush();
 
     this.audio.init();
     this.audio.resume();

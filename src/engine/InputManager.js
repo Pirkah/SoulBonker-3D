@@ -70,36 +70,39 @@ export class InputManager {
   }
 
   onKeyDown(e) {
-    const key = e.key.toLowerCase();
-    const code = e.code;
+    const key = (e.key || '').toLowerCase();
+    const code = e.code || '';
     this.rawKeys[key] = true;
     this.rawKeys[code] = true;
+    if (e.key) this.rawKeys[e.key] = true;
 
     // Dodge: Space, L, Shift, V
-    if (code === 'Space' || code === 'KeyL' || code === 'ShiftLeft' || code === 'ShiftRight' || code === 'KeyV') {
+    if (code === 'Space' || code === 'KeyL' || code === 'ShiftLeft' || code === 'ShiftRight' || code === 'KeyV' || key === ' ' || key === 'l' || key === 'v') {
       this.actions.dodge = true;
       this.actions.startOrRestart = true;
     }
 
     // Light Attack: J or X
-    if (code === 'KeyJ' || code === 'KeyX') {
+    if (code === 'KeyJ' || code === 'KeyX' || key === 'j' || key === 'x') {
       this.actions.lightAttack = true;
       this.actions.startOrRestart = true;
     }
 
-    // Heavy Attack Charge: K or E or C
-    if (code === 'KeyK' || code === 'KeyE' || code === 'KeyC') {
+    // Heavy Attack Charge & Trigger: K or E or C
+    if (code === 'KeyK' || code === 'KeyE' || code === 'KeyC' || key === 'k' || key === 'e' || key === 'c') {
       this.isChargingHeavy = true;
+      this.actions.heavyAttack = true;
+      this.actions.startOrRestart = true;
     }
 
     // Lock On: I or R or Tab
-    if (code === 'KeyI' || code === 'KeyR' || code === 'Tab') {
+    if (code === 'KeyI' || code === 'KeyR' || code === 'Tab' || key === 'i' || key === 'r') {
       e.preventDefault();
       this.actions.lockOn = true;
     }
 
     // Pause: P or Escape
-    if (code === 'KeyP' || code === 'Escape') {
+    if (code === 'KeyP' || code === 'Escape' || key === 'p') {
       this.actions.pause = true;
     }
 
@@ -109,31 +112,32 @@ export class InputManager {
     }
 
     // Mod Menu Toggle: M or ² (Backquote) or F1
-    if (code === 'KeyM' || code === 'Backquote' || code === 'F1') {
+    if (code === 'KeyM' || code === 'Backquote' || code === 'F1' || key === 'm' || key === '²') {
       e.preventDefault();
       this.actions.toggleModMenu = true;
     }
 
     // Rogue-lite Card Selection: [1] or [J], [2] or [K], [3] or [L]
-    if (code === 'Digit1' || code === 'Numpad1') {
+    if (code === 'Digit1' || code === 'Numpad1' || key === '1') {
       this.actions.selectCard1 = true;
     }
-    if (code === 'Digit2' || code === 'Numpad2') {
+    if (code === 'Digit2' || code === 'Numpad2' || key === '2') {
       this.actions.selectCard2 = true;
     }
-    if (code === 'Digit3' || code === 'Numpad3') {
+    if (code === 'Digit3' || code === 'Numpad3' || key === '3') {
       this.actions.selectCard3 = true;
     }
   }
 
   onKeyUp(e) {
-    const key = e.key.toLowerCase();
-    const code = e.code;
+    const key = (e.key || '').toLowerCase();
+    const code = e.code || '';
     this.rawKeys[key] = false;
     this.rawKeys[code] = false;
+    if (e.key) this.rawKeys[e.key] = false;
 
     // Heavy Attack Release
-    if (code === 'KeyK' || code === 'KeyE' || code === 'KeyC') {
+    if (code === 'KeyK' || code === 'KeyE' || code === 'KeyC' || key === 'k' || key === 'e' || key === 'c') {
       if (this.isChargingHeavy) {
         this.actions.heavyAttack = true;
         this.isChargingHeavy = false;
@@ -147,6 +151,7 @@ export class InputManager {
       this.actions.startOrRestart = true;
     } else if (e.button === 2) { // Right click
       this.isChargingHeavy = true;
+      this.actions.heavyAttack = true;
     } else if (e.button === 1) { // Middle click
       this.actions.lockOn = true;
     }
@@ -178,10 +183,10 @@ export class InputManager {
     let moveX = 0;
     let moveZ = 0;
 
-    const forward = this.rawKeys['w'] || this.rawKeys['z'] || this.rawKeys['arrowup'] || this.rawKeys['KeyW'] || this.rawKeys['KeyZ'];
-    const backward = this.rawKeys['s'] || this.rawKeys['arrowdown'] || this.rawKeys['KeyS'];
-    const left = this.rawKeys['a'] || this.rawKeys['q'] || this.rawKeys['arrowleft'] || this.rawKeys['KeyA'] || this.rawKeys['KeyQ'];
-    const right = this.rawKeys['d'] || this.rawKeys['arrowright'] || this.rawKeys['KeyD'];
+    const forward = this.rawKeys['w'] || this.rawKeys['z'] || this.rawKeys['arrowup'] || this.rawKeys['KeyW'] || this.rawKeys['KeyZ'] || this.rawKeys['ArrowUp'] || this.rawKeys['W'] || this.rawKeys['Z'];
+    const backward = this.rawKeys['s'] || this.rawKeys['arrowdown'] || this.rawKeys['KeyS'] || this.rawKeys['ArrowDown'] || this.rawKeys['S'];
+    const left = this.rawKeys['a'] || this.rawKeys['q'] || this.rawKeys['arrowleft'] || this.rawKeys['KeyA'] || this.rawKeys['KeyQ'] || this.rawKeys['ArrowLeft'] || this.rawKeys['A'] || this.rawKeys['Q'];
+    const right = this.rawKeys['d'] || this.rawKeys['arrowright'] || this.rawKeys['KeyD'] || this.rawKeys['ArrowRight'] || this.rawKeys['D'];
 
     if (forward) moveZ -= 1;
     if (backward) moveZ += 1;

@@ -39,8 +39,20 @@ export class Weapon {
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
+    if (this.weaponLoadRequestId === undefined) this.weaponLoadRequestId = 0;
+    const reqId = ++this.weaponLoadRequestId;
+
     // Load Blender 3D Model
     GlobalModelLoader.loadOBJWithMTL(modelPath, mtlPath).then((model) => {
+      if (reqId !== this.weaponLoadRequestId) return;
+
+      while (this.modelGroup.children.length > 0) {
+        const c = this.modelGroup.children[0];
+        this.modelGroup.remove(c);
+        if (c.geometry) c.geometry.dispose();
+        if (c.material) c.material.dispose();
+      }
+
       if (model) {
         if (weaponType === 'BOW') {
           model.scale.set(1.2, 1.2, 1.2);
@@ -58,7 +70,7 @@ export class Weapon {
         }
         this.modelGroup.add(model);
       }
-    });
+    }).catch(err => console.warn('Could not load weapon model:', err));
 
     // Glowing Rune Gem / Energy Core at the Tip
     const runeGeo = new THREE.OctahedronGeometry(0.16);
@@ -75,6 +87,9 @@ export class Weapon {
   setWeaponClass(modelPath, mtlPath, weaponType, glowColor = 0x00ffff) {
     this.buildWeaponMesh(modelPath, mtlPath, weaponType);
     this.setGlowColor(glowColor);
+    if (this.parentHand && this.group.parent !== this.parentHand) {
+      this.parentHand.add(this.group);
+    }
   }
 
   buildTrailMesh() {
