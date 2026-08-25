@@ -28,7 +28,6 @@ export class Bonkling extends Enemy {
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
-    // Load Blender 3D Model
     GlobalModelLoader.loadOBJWithMTL('assets/models/bonkling.obj', 'assets/models/bonkling.mtl').then((model) => {
       if (model) {
         model.scale.set(1.0, 1.0, 1.0);
@@ -36,7 +35,6 @@ export class Bonkling extends Enemy {
       }
     });
 
-    // Procedural eye lights
     const eyeGeo = new THREE.BoxGeometry(0.12, 0.08, 0.1);
     this.eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0022 });
     const eyeL = new THREE.Mesh(eyeGeo, this.eyeMat);
@@ -97,7 +95,6 @@ export class HammerBrute extends Enemy {
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
-    // Load Blender 3D Model
     GlobalModelLoader.loadOBJWithMTL('assets/models/hammer_brute.obj', 'assets/models/hammer_brute.mtl').then((model) => {
       if (model) {
         model.scale.set(1.3, 1.3, 1.3);
@@ -167,7 +164,6 @@ export class VoidMage extends Enemy {
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
-    // Load Blender 3D Model
     GlobalModelLoader.loadOBJWithMTL('assets/models/void_mage.obj', 'assets/models/void_mage.mtl').then((model) => {
       if (model) {
         model.scale.set(1.0, 1.0, 1.0);
@@ -201,7 +197,7 @@ export class VoidMage extends Enemy {
 }
 
 // ==========================================
-// 4. LE PROFESSEUR D'AMPHI (3D Master Blender Boss)
+// 4. LE PROFESSEUR D'AMPHI (Boss 3D Noir & Attaque 'Prendre la porte')
 // ==========================================
 export class ProfesseurAmphi extends Enemy {
   constructor(scene, x, z, projectilesList) {
@@ -222,11 +218,11 @@ export class ProfesseurAmphi extends Enemy {
     this.isEnraged = false;
     this.attackPatternIndex = 0;
     this.quotes = [
+      "PRENEZ LA PORTE !",
       "SILENCE AU FOND !",
       "INTERRO SURPRISE ! 0/20",
       "VOUS IREZ EN RATTRAPAGE !",
-      "RANGEZ VOS AFFAIRES !",
-      "LE COURS EST TERMINÉ !"
+      "SORTEZ DE MON AMPHI !"
     ];
 
     this.buildProfessorMesh();
@@ -236,7 +232,7 @@ export class ProfesseurAmphi extends Enemy {
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
-    // 1. Load Master Blender 3D Model (White Sweater, Blue Collar, Trousers, Glasses, Colossal Pen)
+    // 1. Load Master Blender 3D Model (Black skin, white sweater, navy pants, glasses, pen)
     GlobalModelLoader.loadOBJWithMTL('assets/models/prof_boss.obj', 'assets/models/prof_boss.mtl').then((model) => {
       if (model) {
         model.scale.set(1.4, 1.4, 1.4);
@@ -244,21 +240,7 @@ export class ProfesseurAmphi extends Enemy {
       }
     });
 
-    // 2. High-Definition Photo Texture Face Overlay on 3D Head
-    const textureLoader = new THREE.TextureLoader();
-    const faceTex = textureLoader.load('assets/prof_boss_clean.png');
-    const portraitGeo = new THREE.PlaneGeometry(1.6, 2.8);
-    this.portraitMat = new THREE.MeshBasicMaterial({
-      map: faceTex,
-      side: THREE.DoubleSide,
-      transparent: true,
-      alphaTest: 0.1
-    });
-    this.portrait = new THREE.Mesh(portraitGeo, this.portraitMat);
-    this.portrait.position.set(0, 3.2, 0.1);
-    this.group.add(this.portrait);
-
-    // 3. 3D Shadow on the floor
+    // 2. 3D Shadow on the floor
     const shadowGeo = new THREE.RingGeometry(0.2, 1.8, 24);
     const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
     const shadow = new THREE.Mesh(shadowGeo, shadowMat);
@@ -274,19 +256,19 @@ export class ProfesseurAmphi extends Enemy {
     this.floorRune.position.y = 0.06;
     this.group.add(this.floorRune);
 
-    // 4. Laser Eyes
-    const eyeGeo = new THREE.SphereGeometry(0.08, 8, 8);
+    // 3. Glowing Laser Eyes (aligned with 3D head at Y = 4.0)
+    const eyeGeo = new THREE.SphereGeometry(0.07, 8, 8);
     this.laserEyeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
     
     this.eyeL = new THREE.Mesh(eyeGeo, this.laserEyeMat);
-    this.eyeL.position.set(-0.16, 4.2, 0.15);
+    this.eyeL.position.set(-0.16, 4.0, 0.15);
     this.group.add(this.eyeL);
 
     this.eyeR = new THREE.Mesh(eyeGeo, this.laserEyeMat);
-    this.eyeR.position.set(0.16, 4.2, 0.15);
+    this.eyeR.position.set(0.16, 4.0, 0.15);
     this.group.add(this.eyeR);
 
-    // 5. Orbiting 3D Exam Papers ("0/20")
+    // 4. Orbiting 3D Exam Papers ("0/20")
     this.examRing = new THREE.Group();
     this.group.add(this.examRing);
     for (let i = 0; i < 4; i++) {
@@ -301,12 +283,11 @@ export class ProfesseurAmphi extends Enemy {
 
     // Telegraph indicator
     this.telegraphMesh.geometry.dispose();
-    this.telegraphMesh.geometry = new THREE.RingGeometry(0.3, 7.8, 36);
+    this.telegraphMesh.geometry = new THREE.RingGeometry(0.3, 8.5, 36);
   }
 
   animateWalk(dt) {
     this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 5)) * 0.15;
-    this.portrait.position.y = 3.2 + Math.abs(Math.sin(this.stateTimer * 5)) * 0.15;
     this.modelGroup.rotation.y = Math.sin(this.stateTimer * 5) * 0.05;
 
     if (this.floorRune) this.floorRune.rotation.z += dt * 1.5;
@@ -323,10 +304,64 @@ export class ProfesseurAmphi extends Enemy {
   }
 
   performAttack(player, audio, particles) {
-    this.attackPatternIndex = (this.attackPatternIndex + 1) % 3;
+    this.attackPatternIndex = (this.attackPatternIndex + 1) % 4;
 
-    // ATTACK 1: "SILENCE AU FOND !" (Ground Slam Shockwave)
+    // =========================================================================
+    // ATTACK 0: "🚪 PRENEZ LA PORTE !" (Porte d'Amphi Claquée au Sol)
+    // =========================================================================
     if (this.attackPatternIndex === 0) {
+      audio.playGroundSlam();
+
+      // Spawn 3D Amphitheatre Door
+      const forwardX = Math.sin(this.rotationY);
+      const forwardZ = Math.cos(this.rotationY);
+      const doorSpawnPos = new THREE.Vector3(
+        this.position.x + forwardX * 3.5,
+        0,
+        this.position.z + forwardZ * 3.5
+      );
+
+      const doorGroup = new THREE.Group();
+      doorGroup.position.copy(doorSpawnPos);
+      doorGroup.rotation.y = this.rotationY;
+      this.scene.add(doorGroup);
+
+      GlobalModelLoader.loadOBJWithMTL('assets/models/amphi_door.obj', 'assets/models/amphi_door.mtl').then((doorModel) => {
+        if (doorModel) {
+          doorModel.scale.set(1.2, 1.2, 1.2);
+          doorGroup.add(doorModel);
+        }
+      });
+
+      // Door Slam Shockwave & Wood Splinters
+      particles.spawnShockwave(doorSpawnPos, 11.0, 0x994411, 0.8);
+      particles.spawnHitSparks(doorSpawnPos, forwardX, forwardZ, 20, true);
+      particles.spawnTextPopup("🚪 'PRENEZ LA PORTE ! SORTEZ !'", doorSpawnPos, '#ff3300', true);
+
+      // Launch Player Backwards with Megabonk force
+      const distSq = MathUtils.distSq2D(doorSpawnPos.x, doorSpawnPos.z, player.position.x, player.position.z);
+      if (distSq <= 7.0 * 7.0 && !player.isInvulnerable) {
+        player.takeDamage(this.damage * 1.25, audio, particles);
+        const dx = player.position.x - this.position.x;
+        const dz = player.position.z - this.position.z;
+        const len = Math.sqrt(dx * dx + dz * dz) || 1;
+        player.velocity.x = (dx / len) * 28;
+        player.velocity.z = (dz / len) * 28;
+      }
+
+      // Remove door mesh after 2 seconds
+      setTimeout(() => {
+        this.scene.remove(doorGroup);
+        doorGroup.traverse(c => {
+          if (c.geometry) c.geometry.dispose();
+          if (c.material) c.material.dispose();
+        });
+      }, 2000);
+    }
+    // =========================================================================
+    // ATTACK 1: "📢 SILENCE AU FOND !" (Séisme d'ondes de choc)
+    // =========================================================================
+    else if (this.attackPatternIndex === 1) {
       audio.playGroundSlam();
       particles.spawnShockwave(this.position, 10.0, 0xff0044, 0.7);
 
@@ -345,8 +380,10 @@ export class ProfesseurAmphi extends Enemy {
         }
       }
     }
-    // ATTACK 2: "DISTRIBUTION DES COPIES 0/20 !" (Hurls 3 exam sheets)
-    else if (this.attackPatternIndex === 1) {
+    // =========================================================================
+    // ATTACK 2: "📝 DISTRIBUTION DES COPIES 0/20 !" (Copies volantes)
+    // =========================================================================
+    else if (this.attackPatternIndex === 2) {
       audio.playMagicCast(false);
       particles.spawnTextPopup("📝 INTERRO SURPRISE ! 0/20", this.position, '#ff2200', true);
 
@@ -362,7 +399,9 @@ export class ProfesseurAmphi extends Enemy {
         }
       }
     }
-    // ATTACK 3: "COUP DE STYLO ROUGE"
+    // =========================================================================
+    // ATTACK 3: "🖊️ COUP DE STYLO ROUGE"
+    // =========================================================================
     else {
       audio.playSwing(true);
       particles.spawnHitSparks(this.position, 0, 0, 14, true);
