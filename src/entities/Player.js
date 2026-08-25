@@ -103,29 +103,38 @@ export class Player {
     this.attackSpeed = classData.attackSpeed;
     this.knockbackBonus = classData.knockbackMultiplier;
 
-    // Swap 3D character mesh
-    while (this.torso.children.length > 0) {
-      const c = this.torso.children[0];
-      this.torso.remove(c);
-      if (c.geometry) c.geometry.dispose();
-      if (c.material) c.material.dispose();
+    // Update visor color
+    if (this.visorMat && classData.color) {
+      this.visorMat.color.setStyle(classData.color);
     }
 
-    GlobalModelLoader.loadOBJWithMTL(classData.modelPath, classData.mtlPath).then((model) => {
-      if (model) {
-        model.scale.set(0.9, 0.9, 0.9);
-        model.position.set(0, -0.95, 0);
-        this.torso.add(model);
+    // Swap 3D character mesh safely inside modelContainer
+    if (this.modelContainer) {
+      while (this.modelContainer.children.length > 0) {
+        const c = this.modelContainer.children[0];
+        this.modelContainer.remove(c);
+        if (c.geometry) c.geometry.dispose();
+        if (c.material) c.material.dispose();
       }
-    });
+
+      GlobalModelLoader.loadOBJWithMTL(classData.modelPath, classData.mtlPath).then((model) => {
+        if (model) {
+          model.scale.set(0.9, 0.9, 0.9);
+          model.position.set(0, -0.95, 0);
+          this.modelContainer.add(model);
+        }
+      });
+    }
 
     // Swap Weapon
-    this.weapon.setWeaponClass(
-      classData.weaponModel,
-      classData.weaponMtl,
-      classData.weaponType,
-      classData.color ? parseInt(classData.color.replace('#', '0x')) : 0x00ffff
-    );
+    if (this.weapon) {
+      this.weapon.setWeaponClass(
+        classData.weaponModel,
+        classData.weaponMtl,
+        classData.weaponType,
+        classData.color ? parseInt(classData.color.replace('#', '0x')) : 0x00ffff
+      );
+    }
   }
 
   buildCharacterMesh() {
@@ -135,16 +144,20 @@ export class Player {
     const armorMat = new THREE.MeshStandardMaterial({ color: 0x1e2436, roughness: 0.45, metalness: 0.6 });
     const goldMat = new THREE.MeshStandardMaterial({ color: 0xddaa33, metalness: 0.85, roughness: 0.25 });
 
-    // Torso container for Blender 3D Model
+    // Torso root
     this.torso = new THREE.Group();
     this.torso.position.y = 0.95;
     this.bodyGroup.add(this.torso);
+
+    // Dedicated container for Blender 3D Character Mesh
+    this.modelContainer = new THREE.Group();
+    this.torso.add(this.modelContainer);
 
     GlobalModelLoader.loadOBJWithMTL(this.currentClass.modelPath, this.currentClass.mtlPath).then((model) => {
       if (model) {
         model.scale.set(0.9, 0.9, 0.9);
         model.position.set(0, -0.95, 0);
-        this.torso.add(model);
+        this.modelContainer.add(model);
       }
     });
 

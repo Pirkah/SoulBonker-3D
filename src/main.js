@@ -246,16 +246,9 @@ class Game {
     this.waveManager.projectiles = [];
     this.waveManager.totalKills = 0;
 
-    // Reset Player
-    this.player.hp = 100;
-    this.player.maxHp = 100;
-    this.player.stamina = 100;
-    this.player.maxStamina = 100;
-    this.player.baseDamage = 35;
-    this.player.attackSpeed = 1.0;
-    this.player.moveSpeed = 10.0 * (this.modMenu?.speedMultiplier || 1.0);
-    this.player.critChance = 0.15;
-    this.player.knockbackBonus = 1.0 * (this.modMenu?.knockbackMultiplier || 1.0);
+    // Reset Player according to selected class
+    const classData = CHARACTER_CLASSES[this.selectedClassKey] || CHARACTER_CLASSES.KNIGHT;
+    this.player.setClass(classData);
     this.player.thunderChain = 0;
     this.player.vampirism = 0;
     this.player.ghostDash = false;

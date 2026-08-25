@@ -1,7 +1,7 @@
 # Blender 5.2.1 LTS MTL File: 'None'
 # www.blender.org
 
-newmtl BT_BlackArmor
+newmtl BT_Armor
 Ns 490.000000
 Ka 0.850000 0.850000 0.850000
 Kd 0.040000 0.040000 0.050000
@@ -11,7 +11,7 @@ Ni 1.500000
 d 1.000000
 illum 3
 
-newmtl BT_ImperialGold
+newmtl BT_Gold
 Ns 640.000000
 Ka 0.950000 0.950000 0.950000
 Kd 1.000000 0.820000 0.150000
@@ -20,6 +20,16 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 3
+
+newmtl BT_MalteseCross
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.850000 0.050000 0.050000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
 
 newmtl BT_RedLenses
 Ns 250.000000
