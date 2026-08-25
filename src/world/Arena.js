@@ -148,11 +148,63 @@ export class Arena {
         }
       });
 
-      // Store physics collision data
+      // Store physics collision data and group reference for camera occlusion transparency
       this.pillars.push({
+        group: pillarGroup,
         position: new THREE.Vector3(pos.x, 0, pos.z),
-        radius: 2.2
+        radius: 2.2,
+        currentOpacity: 1.0
       });
+    });
+  }
+
+  updateCameraOcclusion(cameraPos, playerPos, dt) {
+    if (!cameraPos || !playerPos) return;
+
+    const camX = cameraPos.x;
+    const camZ = cameraPos.z;
+    const plX = playerPos.x;
+    const plZ = playerPos.z;
+
+    const segDx = plX - camX;
+    const segDz = plZ - camZ;
+    const segLenSq = segDx * segDx + segDz * segDz;
+
+    this.pillars.forEach((p) => {
+      let isOccluding = false;
+
+      if (segLenSq > 0.01) {
+        // Projection t onto line segment between camera and player [0, 1]
+        const t = Math.max(0, Math.min(1, ((p.position.x - camX) * segDx + (p.position.z - camZ) * segDz) / segLenSq));
+        const projX = camX + t * segDx;
+        const projZ = camZ + t * segDz;
+        const distSq = (p.position.x - projX) ** 2 + (p.position.z - projZ) ** 2;
+
+        // If pillar is in line of sight between camera and player
+        if (distSq < 3.5 * 3.5 && t > 0.05 && t < 0.95) {
+          isOccluding = true;
+        }
+      }
+
+      // If camera is very close to this pillar
+      const camDistSq = (p.position.x - camX) ** 2 + (p.position.z - camZ) ** 2;
+      if (camDistSq < 4.8 * 4.8) {
+        isOccluding = true;
+      }
+
+      // Smoothly fade transparency
+      const targetOpacity = isOccluding ? 0.22 : 1.0;
+      p.currentOpacity = p.currentOpacity + (targetOpacity - p.currentOpacity) * Math.min(1.0, dt * 9.0);
+
+      if (p.group) {
+        p.group.traverse((child) => {
+          if (child.isMesh && child.material) {
+            child.material.transparent = true;
+            child.material.opacity = p.currentOpacity;
+            child.material.depthWrite = (p.currentOpacity > 0.7);
+          }
+        });
+      }
     });
   }
 

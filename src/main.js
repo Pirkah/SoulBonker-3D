@@ -284,6 +284,7 @@ class Game {
     // 3. Update Camera, World & Particles
     this.cameraController.update(rawDt, this.player.position, this.input);
     this.arena.update(rawDt, this.clock.getElapsedTime());
+    this.arena.updateCameraOcclusion(this.camera.position, this.player.position, rawDt);
     this.particles.update(rawDt);
 
     // 4. Update 2D / 3D HUD

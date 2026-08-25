@@ -1,6 +1,6 @@
 import * as THREE from '../../libs/three.module.js';
 import { Enemy } from './Enemy.js';
-import { Projectile, ExamPaperProjectile } from './Projectile.js';
+import { Projectile, ExamPaperProjectile, ThrownDoorProjectile } from './Projectile.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { GlobalModelLoader } from '../engine/ModelLoader.js';
 
@@ -304,7 +304,7 @@ export class ProfesseurAmphi extends Enemy {
   }
 
   performAttack(player, audio, particles) {
-    this.attackPatternIndex = (this.attackPatternIndex + 1) % 4;
+    this.attackPatternIndex = (this.attackPatternIndex + 1) % 5;
 
     // =========================================================================
     // ATTACK 0: "🚪 PRENEZ LA PORTE !" (Porte d'Amphi Claquée au Sol)
@@ -312,7 +312,6 @@ export class ProfesseurAmphi extends Enemy {
     if (this.attackPatternIndex === 0) {
       audio.playGroundSlam();
 
-      // Spawn 3D Amphitheatre Door
       const forwardX = Math.sin(this.rotationY);
       const forwardZ = Math.cos(this.rotationY);
       const doorSpawnPos = new THREE.Vector3(
@@ -349,7 +348,6 @@ export class ProfesseurAmphi extends Enemy {
         player.velocity.z = (dz / len) * 28;
       }
 
-      // Remove door mesh after 2 seconds
       setTimeout(() => {
         this.scene.remove(doorGroup);
         doorGroup.traverse(c => {
@@ -359,9 +357,29 @@ export class ProfesseurAmphi extends Enemy {
       }, 2000);
     }
     // =========================================================================
-    // ATTACK 1: "📢 SILENCE AU FOND !" (Séisme d'ondes de choc)
+    // ATTACK 1: "🚀 LANCER DE PORTE D'AMPHI !" (Porte 3D Volante)
     // =========================================================================
     else if (this.attackPatternIndex === 1) {
+      audio.playSwing(true);
+      particles.spawnHitSparks(this.position, 0, 0, 16, true);
+      particles.spawnTextPopup("🚪 'C'EST LA PORTE POUR VOUS !'", this.position, '#ff2200', true);
+
+      if (this.projectilesList) {
+        const flyingDoor = new ThrownDoorProjectile(
+          this.scene,
+          this.position,
+          player.position,
+          16,
+          40,
+          true
+        );
+        this.projectilesList.push(flyingDoor);
+      }
+    }
+    // =========================================================================
+    // ATTACK 2: "📢 SILENCE AU FOND !" (Séisme d'ondes de choc)
+    // =========================================================================
+    else if (this.attackPatternIndex === 2) {
       audio.playGroundSlam();
       particles.spawnShockwave(this.position, 10.0, 0xff0044, 0.7);
 
@@ -381,9 +399,9 @@ export class ProfesseurAmphi extends Enemy {
       }
     }
     // =========================================================================
-    // ATTACK 2: "📝 DISTRIBUTION DES COPIES 0/20 !" (Copies volantes)
+    // ATTACK 3: "📝 DISTRIBUTION DES COPIES 0/20 !" (Copies volantes)
     // =========================================================================
-    else if (this.attackPatternIndex === 2) {
+    else if (this.attackPatternIndex === 3) {
       audio.playMagicCast(false);
       particles.spawnTextPopup("📝 INTERRO SURPRISE ! 0/20", this.position, '#ff2200', true);
 
@@ -400,7 +418,7 @@ export class ProfesseurAmphi extends Enemy {
       }
     }
     // =========================================================================
-    // ATTACK 3: "🖊️ COUP DE STYLO ROUGE"
+    // ATTACK 4: "🖊️ COUP DE STYLO ROUGE"
     // =========================================================================
     else {
       audio.playSwing(true);

@@ -1,5 +1,6 @@
 import * as THREE from '../../libs/three.module.js';
 import { MathUtils } from '../utils/MathUtils.js';
+import { GlobalModelLoader } from '../engine/ModelLoader.js';
 
 export class Projectile {
   constructor(scene, startPos, targetPos, speed = 12, damage = 18, isEnemy = true) {
@@ -196,5 +197,76 @@ export class ExamPaperProjectile extends Projectile {
       this.paperMesh.rotation.z += dt * 8;
       this.paperMesh.rotation.y += dt * 6;
     }
+  }
+}
+
+// ==========================================
+// 3. THROWN AMPHI DOOR PROJECTILE (3D Blender Flying Door)
+// ==========================================
+export class ThrownDoorProjectile extends Projectile {
+  constructor(scene, startPos, targetPos, speed = 14, damage = 38, isEnemy = true) {
+    super(scene, startPos, targetPos, speed, damage, isEnemy);
+    this.radius = 1.6;
+    this.life = 4.5;
+  }
+
+  buildMesh() {
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.position.copy(this.position);
+
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
+
+    // Load Blender 3D Flying Door Model
+    GlobalModelLoader.loadOBJWithMTL('assets/models/thrown_door.obj', 'assets/models/thrown_door.mtl').then((model) => {
+      if (model) {
+        model.scale.set(0.9, 0.9, 0.9);
+        this.modelGroup.add(model);
+      }
+    });
+
+    // Glowing Red Aerodynamic Trail Ring
+    const trailRingGeo = new THREE.RingGeometry(0.8, 1.8, 16);
+    this.trailRingMat = new THREE.MeshBasicMaterial({
+      color: 0xff2200,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.65
+    });
+    this.trailRing = new THREE.Mesh(trailRingGeo, this.trailRingMat);
+    this.group.add(this.trailRing);
+  }
+
+  reflect(newDirX, newDirZ, bonusMultiplier = 3.5) {
+    this.isEnemy = false;
+    this.speed *= 1.6;
+    this.damage = Math.floor(this.damage * bonusMultiplier);
+    this.velocity.set(newDirX * this.speed, 0, newDirZ * this.speed);
+    if (this.trailRingMat) this.trailRingMat.color.setHex(0x00ffff);
+    this.life = 4.0;
+  }
+
+  update(dt, player, enemies, audio, particles) {
+    super.update(dt, player, enemies, audio, particles);
+
+    // Fast tumbling 3D door rotation
+    if (this.modelGroup) {
+      this.modelGroup.rotation.x += dt * 12.0;
+      this.modelGroup.rotation.z += dt * 6.0;
+    }
+
+    if (this.trailRing) {
+      this.trailRing.rotation.y += dt * 10.0;
+    }
+
+    // Trailing sparks
+    if (Math.random() < 0.4) {
+      particles.spawnHitSparks(this.position, 0, 0, 4);
+    }
+  }
+
+  destroy() {
+    super.destroy();
   }
 }
