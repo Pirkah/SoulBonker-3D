@@ -485,11 +485,39 @@ export class Player {
 
   handleDodge(dt, audio, particles, enemies) {
     const dodgeDuration = 0.44;
-    const progress = this.stateTimer / dodgeDuration;
+    const progress = Math.min(1.0, this.stateTimer / dodgeDuration);
 
-    // Natural forward 360 somersault flip in movement direction
+    // 1. Organic Ball Tuck & Joint Articulation
+    const tuck = Math.sin(progress * Math.PI); // 0 -> 1 -> 0
+
+    // Body Somersault & Arc trajectory
     this.bodyGroup.rotation.x = progress * Math.PI * 2;
-    this.bodyGroup.position.y = Math.sin(progress * Math.PI) * 0.5;
+    this.bodyGroup.position.y = tuck * 0.38;
+
+    // Athletic compression & low center of gravity
+    const squash = 1.0 - tuck * 0.22;
+    this.bodyGroup.scale.set(squash, squash, squash);
+    this.torso.position.y = 0.95 - tuck * 0.45;
+
+    // Spine & Head Tuck (Chin to chest)
+    this.torso.rotation.x = tuck * 0.65;
+    this.head.rotation.x = tuck * 0.85;
+
+    // Knees curled up into the chest
+    this.leftLeg.rotation.x = tuck * 1.6;
+    this.rightLeg.rotation.x = tuck * 1.4;
+
+    // Arms wrapped tight, heavy weapon tucked securely across the back
+    this.leftArm.rotation.x = -tuck * 1.4;
+    this.leftArm.rotation.z = tuck * 0.3;
+    this.rightArm.rotation.x = -tuck * 1.2;
+    this.rightArm.rotation.z = tuck * 0.4;
+    this.weapon.group.rotation.set(0.2, 0, -1.2 * tuck);
+
+    // Roll path dust sparks
+    if (Math.random() < 0.35 && progress > 0.2 && progress < 0.8) {
+      particles.spawnDustRing(this.position, 0.4);
+    }
 
     // Ghost Dash perk
     if (this.ghostDash && enemies) {
@@ -506,11 +534,24 @@ export class Player {
       this.isInvulnerable = false;
     }
 
+    // Landing recovery on feet
     if (this.stateTimer >= dodgeDuration) {
       this.state = 'IDLE';
+      this.isInvulnerable = false;
       this.bodyGroup.rotation.x = 0;
       this.bodyGroup.position.y = 0;
-      this.isInvulnerable = false;
+      this.bodyGroup.scale.set(1, 1, 1);
+      this.torso.position.y = 0.95;
+      this.torso.rotation.set(0, 0, 0);
+      this.head.rotation.set(0, 0, 0);
+      this.leftLeg.rotation.set(0, 0, 0);
+      this.rightLeg.rotation.set(0, 0, 0);
+      this.leftArm.rotation.set(0, 0, 0);
+      this.rightArm.rotation.set(0, 0, 0);
+      this.weapon.group.rotation.set(0.6, 0, -0.2);
+
+      // Foot landing dust puff
+      particles.spawnDustRing(this.position, 0.6);
     }
   }
 
