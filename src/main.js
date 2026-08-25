@@ -11,6 +11,7 @@ import { WaveManager } from './systems/WaveManager.js';
 import { UpgradeManager } from './systems/UpgradeManager.js';
 import { UIManager } from './systems/UIManager.js';
 import { ModMenu } from './systems/ModMenu.js';
+import { GlobalModelLoader } from './engine/ModelLoader.js';
 
 import { CHARACTER_CLASSES } from './systems/ClassManager.js';
 
