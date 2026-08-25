@@ -105,7 +105,7 @@ export class Player {
 
     // Update visor color
     if (this.visorMat && classData.color) {
-      this.visorMat.color.setStyle(classData.color);
+      this.visorMat.color.set(classData.color);
     }
 
     // Swap 3D character mesh safely inside modelContainer

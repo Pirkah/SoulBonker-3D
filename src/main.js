@@ -184,15 +184,15 @@ class Game {
         const key = e.key;
 
         // Class Quick Select Keys -> immediately starts with that class!
-        if (code === 'Digit1' || code === 'Numpad1' || key === '1' || code === 'KeyJ' || key === 'j') {
+        if (code === 'Digit1' || code === 'Numpad1' || key === '1') {
           this.startGame('KNIGHT');
-        } else if (code === 'Digit2' || code === 'Numpad2' || key === '2' || code === 'KeyK' || key === 'k') {
+        } else if (code === 'Digit2' || code === 'Numpad2' || key === '2') {
           this.startGame('ARCHER');
-        } else if (code === 'Digit3' || code === 'Numpad3' || key === '3' || code === 'KeyL' || key === 'l') {
+        } else if (code === 'Digit3' || code === 'Numpad3' || key === '3') {
           this.startGame('MAGE');
-        } else if (code === 'Digit4' || code === 'Numpad4' || key === '4' || code === 'KeyI' || key === 'i') {
+        } else if (code === 'Digit4' || code === 'Numpad4' || key === '4') {
           this.startGame('SPACEMARINE');
-        } else if (code === 'Space' || key === ' ' || code === 'Enter') {
+        } else if (code === 'Space' || key === ' ' || code === 'Enter' || code === 'KeyJ' || key === 'j') {
           this.startGame();
         }
       }

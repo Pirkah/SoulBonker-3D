@@ -123,10 +123,10 @@ export class Weapon {
 
   setGlowColor(hex) {
     if (this.runeMat) {
-      this.runeMat.color.setHex(hex);
+      this.runeMat.color.set(hex);
     }
-    if (this.trailMat) {
-      this.trailMat.uniforms.uColor.value.setHex(hex);
+    if (this.trailMat && this.trailMat.uniforms.uColor) {
+      this.trailMat.uniforms.uColor.value.set(hex);
     }
   }
 
