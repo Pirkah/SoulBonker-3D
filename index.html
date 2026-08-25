@@ -427,6 +427,142 @@
       color: #000;
     }
 
+    /* === CHARACTER SELECTION CARDS === */
+    .hero-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 1080px;
+      width: 95%;
+      margin-bottom: 22px;
+    }
+
+    .hero-card {
+      background: rgba(14, 18, 30, 0.94);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .hero-card:hover, .hero-card.selected {
+      transform: translateY(-8px) scale(1.025);
+      border-color: var(--hero-color, var(--primary));
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px var(--hero-glow);
+    }
+
+    .hero-card.knight { --hero-color: #00f0ff; --hero-glow: rgba(0, 240, 255, 0.35); }
+    .hero-card.archer { --hero-color: #00ff88; --hero-glow: rgba(0, 255, 136, 0.35); }
+    .hero-card.mage { --hero-color: #bb44ff; --hero-glow: rgba(187, 68, 255, 0.35); }
+    .hero-card.spacemarine { --hero-color: #ff3300; --hero-glow: rgba(255, 51, 0, 0.45); }
+
+    .hero-shortcut {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 11px;
+      font-weight: 900;
+      color: #fff;
+      background: rgba(255,255,255,0.12);
+      padding: 3px 7px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .hero-icon {
+      font-size: 42px;
+      margin-bottom: 6px;
+      filter: drop-shadow(0 0 8px var(--hero-glow));
+    }
+
+    .hero-name {
+      font-size: 16px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
+    .hero-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--hero-color);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .hero-stats {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-bottom: 10px;
+      text-align: left;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .hero-stat-row {
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+    }
+
+    .hero-stat-val {
+      color: #ffd700;
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+
+    .hero-desc {
+      font-size: 11.5px;
+      color: #cbd5e1;
+      line-height: 1.35;
+      margin-bottom: 12px;
+      flex-grow: 1;
+    }
+
+    .hero-perk-badge {
+      width: 100%;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--hero-color);
+      background: rgba(255,255,255,0.05);
+      padding: 4px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .hero-select-btn {
+      width: 100%;
+      padding: 9px;
+      border: none;
+      border-radius: 8px;
+      background: var(--hero-color);
+      color: #000;
+      font-weight: 900;
+      font-size: 12px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s;
+    }
+
+    .hero-card:hover .hero-select-btn {
+      filter: brightness(1.15);
+    }
+
     /* CONTROLS GUIDE FOOTER */
     .controls-hint {
       position: absolute;
@@ -669,19 +805,79 @@
     </div>
   </div>
 
-  <!-- START SCREEN MODAL -->
+  <!-- START / CHARACTER SELECTION MODAL -->
   <div class="modal-overlay" id="start-modal">
-    <h1 class="modal-title" style="color: var(--primary);">SOULBONKER 3D</h1>
-    <p class="modal-subtitle">Megabonk Physics x Souls-Like Rogue-Lite Arena</p>
-    <div style="background: rgba(255,255,255,0.06); padding: 22px 32px; border-radius: 16px; max-width: 520px; margin-bottom: 28px; line-height: 1.6; font-size: 14px; color: #cbd5e1; border: 1px solid rgba(0,240,255,0.25); box-shadow: 0 0 30px rgba(0,0,0,0.5);">
-      <p style="color: var(--gold); font-weight: 800; margin-bottom: 8px;">💻 100% JOUABLE AU CLAVIER SUR PC PORTABLE (SANS SOURIS) :</p>
-      <p>✋ <strong>Main gauche :</strong> <span class="key-badge">Z</span> <span class="key-badge">Q</span> <span class="key-badge">S</span> <span class="key-badge">D</span> pour se déplacer.</p>
-      <p>🤚 <strong>Main droite :</strong> <span class="key-badge">J</span> Attaque Légère &nbsp;|&nbsp; <span class="key-badge">K</span> Attaque Lourde &nbsp;|&nbsp; <span class="key-badge">L</span> Esquive / Roulade</p>
-      <p>🎯 <strong>Visée Automatique Intelligente :</strong> vos coups ciblent automatiquement les ennemis les plus proches sans toucher au trackpad !</p>
-      <p>⚡ <strong>Esquive Parfaite :</strong> appuyez sur <span class="key-badge">L</span> ou <span class="key-badge">ESPACE</span> pile à l'attaque ennemie pour déclencher le <em>Bullet Time</em> et régénérer 100% de votre endurance.</p>
+    <h1 class="modal-title" style="color: var(--primary); text-shadow: 0 0 25px rgba(0,240,255,0.6);">CHOISISSEZ VOTRE HÉROS</h1>
+    <p class="modal-subtitle">Sélectionnez une classe avec les touches [1], [2], [3], [4] ou à la souris :</p>
+    
+    <div class="hero-cards-grid" id="hero-selection-grid">
+      <!-- 1. CHEVALIER -->
+      <div class="hero-card knight selected" data-class="KNIGHT" id="card-knight">
+        <div class="hero-shortcut">[1]</div>
+        <div class="hero-icon">🛡️</div>
+        <div class="hero-name">Chevalier Bonkeur</div>
+        <div class="hero-title">Guerrier d'Élite</div>
+        <div class="hero-stats">
+          <div class="hero-stat-row"><span>Santé (PV) :</span> <span class="hero-stat-val">120 PV ⭐⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Vitesse :</span> <span class="hero-stat-val">Normale ⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Portée :</span> <span class="hero-stat-val">Corps-à-corps ⭐</span></div>
+        </div>
+        <div class="hero-desc">Massue colossale, esquives parfaites et Bullet Time au corps-à-corps.</div>
+        <div class="hero-perk-badge">💥 Lourd : Slam Sismique Megabonk</div>
+        <button class="hero-select-btn" id="btn-knight">JOUER CHEVALIER [1]</button>
+      </div>
+
+      <!-- 2. ARCHER -->
+      <div class="hero-card archer" data-class="ARCHER" id="card-archer">
+        <div class="hero-shortcut">[2]</div>
+        <div class="hero-icon">🏹</div>
+        <div class="hero-name">Rôdeur Sylvestre</div>
+        <div class="hero-title">Tireur d'Élite à l'Arc</div>
+        <div class="hero-stats">
+          <div class="hero-stat-row"><span>Santé (PV) :</span> <span class="hero-stat-val">85 PV ⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Vitesse :</span> <span class="hero-stat-val">Ultra Rapide ⭐⭐⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Portée :</span> <span class="hero-stat-val">Distance (Arc) ⭐⭐⭐⭐⭐</span></div>
+        </div>
+        <div class="hero-desc">Tire des flèches perçantes à distance pour faucher les vagues sans se faire toucher.</div>
+        <div class="hero-perk-badge">🏹 Lourd : Pluie de 3 Flèches</div>
+        <button class="hero-select-btn" id="btn-archer">JOUER ARCHER [2]</button>
+      </div>
+
+      <!-- 3. MAGE -->
+      <div class="hero-card mage" data-class="MAGE" id="card-mage">
+        <div class="hero-shortcut">[3]</div>
+        <div class="hero-icon">🧙</div>
+        <div class="hero-name">Archimage Arcanique</div>
+        <div class="hero-title">Maître des Sorts</div>
+        <div class="hero-stats">
+          <div class="hero-stat-row"><span>Santé (PV) :</span> <span class="hero-stat-val">75 PV ⭐</span></div>
+          <div class="hero-stat-row"><span>Vitesse :</span> <span class="hero-stat-val">Moyenne ⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Portée :</span> <span class="hero-stat-val">Projectiles Magiques ⭐⭐⭐⭐</span></div>
+        </div>
+        <div class="hero-desc">Orbes magiques explosives à tête chercheuse et téléportation lors des esquives.</div>
+        <div class="hero-perk-badge">🔮 Lourd : Supernova Éclatante</div>
+        <button class="hero-select-btn" id="btn-mage">JOUER MAGE [3]</button>
+      </div>
+
+      <!-- 4. SPACE MARINE -->
+      <div class="hero-card spacemarine" data-class="SPACEMARINE" id="card-spacemarine">
+        <div class="hero-shortcut">[4]</div>
+        <div class="hero-icon">⚔️</div>
+        <div class="hero-name">Black Templar</div>
+        <div class="hero-title">Space Marine de l'Imperium</div>
+        <div class="hero-stats">
+          <div class="hero-stat-row"><span>Santé (PV) :</span> <span class="hero-stat-val">180 PV ⭐⭐⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Vitesse :</span> <span class="hero-stat-val">Lourde ⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Dégâts :</span> <span class="hero-stat-val">Ultra Massifs ⭐⭐⭐⭐⭐</span></div>
+        </div>
+        <div class="hero-desc">Pour l'Empereur ! Armure énergétique, épée-tronçonneuse et tirs de Bolter explosifs.</div>
+        <div class="hero-perk-badge">🚀 Lourd : Frappe & Roquette Bolter</div>
+        <button class="hero-select-btn" id="btn-spacemarine">JOUER BLACK TEMPLAR [4]</button>
+      </div>
     </div>
-    <button class="interactive-btn" id="start-btn" style="padding: 16px 44px; font-size: 18px; background: var(--primary); color: #000; border: none; font-weight: 900; letter-spacing: 1px; border-radius: 30px; box-shadow: 0 0 35px rgba(0,240,255,0.65);">
-      COMMENCER [ESPACE ou ENTRÉE]
+
+    <button class="interactive-btn" id="start-btn" style="padding: 14px 40px; font-size: 17px; background: var(--primary); color: #000; border: none; font-weight: 900; letter-spacing: 1px; border-radius: 30px; box-shadow: 0 0 35px rgba(0,240,255,0.65);">
+      LANCER LA PARTIE [ESPACE ou ENTRÉE]
     </button>
   </div>
 

@@ -1,4 +1,5 @@
 import { Bonkling, HammerBrute, VoidMage, ProfesseurAmphi } from '../entities/EnemyTypes.js';
+import { CHARACTER_CLASSES } from './ClassManager.js';
 
 export class ModMenu {
   constructor(game) {
@@ -81,6 +82,17 @@ export class ModMenu {
             <button class="mod-btn" id="open-upgrades-btn">🃏 Ouvrir le Deck d'Améliorations</button>
             <button class="mod-btn" id="wave-5-btn">🎓 Sauter à la Vague 5 (Boss Prof)</button>
             <button class="mod-btn" id="wave-10-btn">💀 Sauter à la Vague 10</button>
+          </div>
+        </div>
+
+        <!-- SECTION 4: CHANGEMENT DE CLASSE EN DIRECT -->
+        <div class="mod-section">
+          <div class="mod-section-title">🎭 CHANGER DE CLASSE EN DIRECT</div>
+          <div class="mod-grid">
+            <button class="mod-btn" id="switch-knight-btn">🛡️ Chevalier Bonkeur</button>
+            <button class="mod-btn" id="switch-archer-btn">🏹 Rôdeur Sylvestre (Archer)</button>
+            <button class="mod-btn" id="switch-mage-btn">🧙 Archimage Arcanique (Mage)</button>
+            <button class="mod-btn" id="switch-sm-btn">⚔️ Black Templar (Space Marine)</button>
           </div>
         </div>
       </div>
@@ -257,6 +269,27 @@ export class ModMenu {
       this.game.waveManager.enemies.forEach(e => e.destroy());
       this.game.waveManager.enemies = [];
       this.game.waveManager.startWave(10);
+      this.toggle(false);
+    };
+
+    // Live Class Switching
+    document.getElementById('switch-knight-btn').onclick = () => {
+      this.game.selectCharacterClass('KNIGHT', false);
+      this.toggle(false);
+    };
+
+    document.getElementById('switch-archer-btn').onclick = () => {
+      this.game.selectCharacterClass('ARCHER', false);
+      this.toggle(false);
+    };
+
+    document.getElementById('switch-mage-btn').onclick = () => {
+      this.game.selectCharacterClass('MAGE', false);
+      this.toggle(false);
+    };
+
+    document.getElementById('switch-sm-btn').onclick = () => {
+      this.game.selectCharacterClass('SPACEMARINE', false);
       this.toggle(false);
     };
   }

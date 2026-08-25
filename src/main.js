@@ -12,10 +12,13 @@ import { UpgradeManager } from './systems/UpgradeManager.js';
 import { UIManager } from './systems/UIManager.js';
 import { ModMenu } from './systems/ModMenu.js';
 
+import { CHARACTER_CLASSES } from './systems/ClassManager.js';
+
 class Game {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
     this.gameState = 'START'; // START, PLAYING, UPGRADE, PAUSED, GAMEOVER
+    this.selectedClassKey = 'KNIGHT';
 
     // Slow-mo / Bullet-time state
     this.timeScale = 1.0;
@@ -91,8 +94,8 @@ class Game {
     this.input = new InputManager(this.canvas, this.camera, this.arena.groundRaycastPlane);
     this.ui = new UIManager(this.camera, document.body);
 
-    this.player = new Player(this.scene);
     this.waveManager = new WaveManager(this.scene, 30);
+    this.player = new Player(this.scene, this.waveManager.projectiles);
     this.upgradeManager = new UpgradeManager();
     this.modMenu = new ModMenu(this);
 
@@ -100,10 +103,34 @@ class Game {
     this.clock = new THREE.Clock();
   }
 
+  selectCharacterClass(classKey, startImmediately = false) {
+    const classData = CHARACTER_CLASSES[classKey];
+    if (!classData) return;
+
+    this.selectedClassKey = classKey;
+    this.player.setClass(classData);
+
+    // Highlight card in UI
+    document.querySelectorAll('.hero-card').forEach(c => c.classList.remove('selected'));
+    const cardEl = document.querySelector(`.hero-card[data-class="${classKey}"]`);
+    if (cardEl) cardEl.classList.add('selected');
+
+    this.particles.spawnTextPopup(`✨ ${classData.name}`, this.player.position, classData.color || '#00f0ff', true);
+
+    if (startImmediately) {
+      this.startGame();
+    }
+  }
+
   startGame() {
     if (this.gameState !== 'START') return;
+
+    const classData = CHARACTER_CLASSES[this.selectedClassKey] || CHARACTER_CLASSES.KNIGHT;
+    this.player.setClass(classData);
+
     const startModal = document.getElementById('start-modal');
     if (startModal) startModal.style.display = 'none';
+
     this.audio.init();
     this.audio.resume();
     this.gameState = 'PLAYING';
@@ -117,6 +144,26 @@ class Game {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
+    // Character Selection Cards Binding
+    const classKeys = ['KNIGHT', 'ARCHER', 'MAGE', 'SPACEMARINE'];
+    classKeys.forEach((key) => {
+      const card = document.querySelector(`.hero-card[data-class="${key}"]`);
+      if (card) {
+        card.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.selectCharacterClass(key, false);
+        });
+      }
+
+      const btn = document.getElementById(`btn-${key.toLowerCase()}`);
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.selectCharacterClass(key, true);
+        });
+      }
+    });
+
     // Start Game Button & Global Triggers
     const startBtn = document.getElementById('start-btn');
     if (startBtn) {
@@ -126,17 +173,21 @@ class Game {
       });
     }
 
-    const startModal = document.getElementById('start-modal');
-    if (startModal) {
-      startModal.addEventListener('click', () => {
-        this.startGame();
-      });
-    }
-
     window.addEventListener('keydown', (e) => {
       if (this.gameState === 'START') {
-        const k = e.key ? e.key.toLowerCase() : '';
-        if (e.code === 'Space' || k === ' ' || e.code === 'Enter' || e.code === 'KeyJ' || k === 'j') {
+        const code = e.code;
+        const key = e.key;
+
+        // Class Quick Select Keys
+        if (code === 'Digit1' || code === 'Numpad1' || key === '1') {
+          this.selectCharacterClass('KNIGHT', false);
+        } else if (code === 'Digit2' || code === 'Numpad2' || key === '2') {
+          this.selectCharacterClass('ARCHER', false);
+        } else if (code === 'Digit3' || code === 'Numpad3' || key === '3') {
+          this.selectCharacterClass('MAGE', false);
+        } else if (code === 'Digit4' || code === 'Numpad4' || key === '4') {
+          this.selectCharacterClass('SPACEMARINE', false);
+        } else if (code === 'Space' || key === ' ' || code === 'Enter' || code === 'KeyJ' || key === 'j') {
           this.startGame();
         }
       }

@@ -97,18 +97,15 @@ export class Projectile {
       }
     }
 
-    // Check collision with Enemies (if reflected by player's Bonk!)
+    // Check collision with Enemies (if player-fired or reflected)
     if (!this.isEnemy && enemies) {
       for (const enemy of enemies) {
         if (enemy.isDead) continue;
         const distSq = MathUtils.distSq2D(this.position.x, this.position.z, enemy.position.x, enemy.position.z);
         if (distSq < (this.radius + enemy.radius) ** 2) {
-          const nx = this.velocity.x / this.speed;
-          const nz = this.velocity.z / this.speed;
-          enemy.takeDamage(this.damage, nx, nz, 22, true);
-          audio.playBonk(1.6, true);
-          particles.spawnHitSparks(this.position, nx, nz, 14, true);
-          particles.spawnTextPopup("💥 REVOI DE COPIE ! " + this.damage, enemy.position, '#00ffff', true);
+          enemy.takeDamage(this.damage, this.velocity.x * 0.3, this.velocity.z * 0.3, 12, true);
+          audio.playHit();
+          particles.spawnHitSparks(this.position, this.velocity.x, this.velocity.z, 14, true);
           this.destroy();
           return;
         }
@@ -117,22 +114,25 @@ export class Projectile {
   }
 }
 
-/**
- * Special Academic Exam Paper Projectile thrown by the Professor Boss!
- */
+// ==========================================
+// 2. EXAM PAPER PROJECTILE ("COPIES 0/20")
+// ==========================================
 export class ExamPaperProjectile extends Projectile {
+  constructor(scene, startPos, targetPos, speed = 14, damage = 22, isEnemy = true) {
+    super(scene, startPos, targetPos, speed, damage, isEnemy);
+    this.radius = 0.8;
+  }
+
   buildMesh() {
     this.group = new THREE.Group();
     this.scene.add(this.group);
     this.group.position.copy(this.position);
 
-    // Canvas texture with "0/20 !" written in bright red
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 320;
     const ctx = canvas.getContext('2d');
 
-    // White paper sheet with lines
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, 256, 320);
 
@@ -145,7 +145,6 @@ export class ExamPaperProjectile extends Projectile {
       ctx.stroke();
     }
 
-    // Big red "0/20" grade with circle
     ctx.fillStyle = '#ff0033';
     ctx.font = 'bold 54px sans-serif';
     ctx.textAlign = 'center';
@@ -170,7 +169,6 @@ export class ExamPaperProjectile extends Projectile {
     this.paperMesh = new THREE.Mesh(paperGeo, this.paperMat);
     this.group.add(this.paperMesh);
 
-    // Glowing red trailing aura
     const auraGeo = new THREE.RingGeometry(0.4, 0.8, 16);
     this.auraMat = new THREE.MeshBasicMaterial({
       color: 0xff0044,
@@ -180,15 +178,6 @@ export class ExamPaperProjectile extends Projectile {
     });
     this.aura = new THREE.Mesh(auraGeo, this.auraMat);
     this.group.add(this.aura);
-  }
-
-  reflect(newDirX, newDirZ, bonusMultiplier = 3.0) {
-    this.isEnemy = false;
-    this.speed *= 2.0;
-    this.damage = Math.floor(this.damage * bonusMultiplier);
-    this.velocity.set(newDirX * this.speed, 0, newDirZ * this.speed);
-    if (this.auraMat) this.auraMat.color.setHex(0x00ffcc);
-    this.life = 4.0;
   }
 
   update(dt, player, enemies, audio, particles) {
@@ -218,7 +207,6 @@ export class ThrownDoorProjectile extends Projectile {
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
-    // Load Blender 3D Flying Door Model
     GlobalModelLoader.loadOBJWithMTL('assets/models/thrown_door.obj', 'assets/models/thrown_door.mtl').then((model) => {
       if (model) {
         model.scale.set(0.9, 0.9, 0.9);
@@ -226,7 +214,6 @@ export class ThrownDoorProjectile extends Projectile {
       }
     });
 
-    // Glowing Red Aerodynamic Trail Ring
     const trailRingGeo = new THREE.RingGeometry(0.8, 1.8, 16);
     this.trailRingMat = new THREE.MeshBasicMaterial({
       color: 0xff2200,
@@ -249,24 +236,143 @@ export class ThrownDoorProjectile extends Projectile {
 
   update(dt, player, enemies, audio, particles) {
     super.update(dt, player, enemies, audio, particles);
-
-    // Fast tumbling 3D door rotation
     if (this.modelGroup) {
       this.modelGroup.rotation.x += dt * 12.0;
       this.modelGroup.rotation.z += dt * 6.0;
     }
+  }
+}
 
-    if (this.trailRing) {
-      this.trailRing.rotation.y += dt * 10.0;
-    }
+// ==========================================
+// 4. 🏹 PLAYER ARROW PROJECTILE (Archer)
+// ==========================================
+export class PlayerArrowProjectile extends Projectile {
+  constructor(scene, startPos, targetPos, speed = 26, damage = 35) {
+    super(scene, startPos, targetPos, speed, damage, false);
+    this.radius = 0.6;
+    this.life = 3.0;
 
-    // Trailing sparks
-    if (Math.random() < 0.4) {
-      particles.spawnHitSparks(this.position, 0, 0, 4);
-    }
+    // Point arrow mesh in flight direction
+    this.group.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      this.velocity.clone().normalize()
+    );
   }
 
-  destroy() {
-    super.destroy();
+  buildMesh() {
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.position.copy(this.position);
+
+    // Arrow Shaft
+    const shaftGeo = new THREE.CylinderGeometry(0.04, 0.04, 1.6, 6);
+    const shaftMat = new THREE.MeshStandardMaterial({ color: 0x4a321a, roughness: 0.8 });
+    const shaft = new THREE.Mesh(shaftGeo, shaftMat);
+    this.group.add(shaft);
+
+    // Arrowhead (Glowing Cyan)
+    const headGeo = new THREE.ConeGeometry(0.12, 0.35, 5);
+    const headMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
+    const head = new THREE.Mesh(headGeo, headMat);
+    head.position.y = 0.95;
+    this.group.add(head);
+
+    // Fletchings
+    const fletchGeo = new THREE.PlaneGeometry(0.25, 0.4);
+    const fletchMat = new THREE.MeshBasicMaterial({ color: 0x00ffaa, side: THREE.DoubleSide });
+    const fletch = new THREE.Mesh(fletchGeo, fletchMat);
+    fletch.position.y = -0.65;
+    this.group.add(fletch);
+  }
+
+  update(dt, player, enemies, audio, particles) {
+    super.update(dt, player, enemies, audio, particles);
+    if (Math.random() < 0.3) {
+      particles.spawnHitSparks(this.position, 0, 0, 2);
+    }
+  }
+}
+
+// ==========================================
+// 5. 🧙 PLAYER ARCANE ORB (Mage)
+// ==========================================
+export class PlayerMagicOrbProjectile extends Projectile {
+  constructor(scene, startPos, targetPos, speed = 18, damage = 42, isCharged = false) {
+    super(scene, startPos, targetPos, speed, damage, false);
+    this.radius = isCharged ? 1.4 : 0.7;
+    this.isCharged = isCharged;
+    this.life = 3.5;
+  }
+
+  buildMesh() {
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.position.copy(this.position);
+
+    const r = this.isCharged ? 0.65 : 0.38;
+    const orbGeo = new THREE.SphereGeometry(r, 10, 10);
+    this.orbMat = new THREE.MeshBasicMaterial({
+      color: this.isCharged ? 0xff00aa : 0x00f0ff
+    });
+    const orb = new THREE.Mesh(orbGeo, this.orbMat);
+    this.group.add(orb);
+
+    const ringGeo = new THREE.RingGeometry(r * 0.8, r * 1.6, 16);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: this.isCharged ? 0xff88ff : 0x7700ff,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.8
+    });
+    this.ring = new THREE.Mesh(ringGeo, ringMat);
+    this.group.add(this.ring);
+  }
+
+  update(dt, player, enemies, audio, particles) {
+    super.update(dt, player, enemies, audio, particles);
+    if (this.ring) {
+      this.ring.rotation.z += dt * 14;
+      this.ring.rotation.x += dt * 8;
+    }
+  }
+}
+
+// ==========================================
+// 6. ⚔️ PLAYER BOLTER SHOT (Space Marine)
+// ==========================================
+export class PlayerBolterProjectile extends Projectile {
+  constructor(scene, startPos, targetPos, speed = 28, damage = 65) {
+    super(scene, startPos, targetPos, speed, damage, false);
+    this.radius = 0.8;
+    this.life = 2.5;
+
+    this.group.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      this.velocity.clone().normalize()
+    );
+  }
+
+  buildMesh() {
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.position.copy(this.position);
+
+    // Bolter Casing
+    const boltGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.65, 8);
+    const boltMat = new THREE.MeshStandardMaterial({ color: 0x222226, metalness: 0.9, roughness: 0.2 });
+    const bolt = new THREE.Mesh(boltGeo, boltMat);
+    this.group.add(bolt);
+
+    // Rocket Exhaust Flare
+    const flareGeo = new THREE.ConeGeometry(0.14, 0.4, 6);
+    const flareMat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+    const flare = new THREE.Mesh(flareGeo, flareMat);
+    flare.position.y = -0.45;
+    this.group.add(flare);
+  }
+
+  update(dt, player, enemies, audio, particles) {
+    super.update(dt, player, enemies, audio, particles);
+    particles.spawnHitSparks(this.position, 0, 0, 3);
   }
 }

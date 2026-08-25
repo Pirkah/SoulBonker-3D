@@ -2,12 +2,13 @@ import * as THREE from '../../libs/three.module.js';
 import { GlobalModelLoader } from '../engine/ModelLoader.js';
 
 export class Weapon {
-  constructor(parentHand) {
+  constructor(parentHand, weaponModel = 'assets/models/megabonk_club.obj', weaponMtl = 'assets/models/megabonk_club.mtl', weaponType = 'CLUB') {
     this.parentHand = parentHand;
     this.group = new THREE.Group();
     this.baseScale = 1.0;
     this.currentScale = 1.0;
     this.rangeMultiplier = 1.0;
+    this.weaponType = weaponType;
 
     // Weapon Tip & Base positions for collision & trail
     this.tipPosition = new THREE.Vector3();
@@ -17,7 +18,7 @@ export class Weapon {
     this.trailHistory = [];
     this.maxTrailLength = 10;
 
-    this.buildWeaponMesh();
+    this.buildWeaponMesh(weaponModel, weaponMtl, weaponType);
     this.buildTrailMesh();
 
     if (this.parentHand) {
@@ -25,29 +26,55 @@ export class Weapon {
     }
   }
 
-  buildWeaponMesh() {
+  buildWeaponMesh(modelPath = 'assets/models/megabonk_club.obj', mtlPath = 'assets/models/megabonk_club.mtl', weaponType = 'CLUB') {
+    // Clear previous children
+    while (this.group.children.length > 0) {
+      const c = this.group.children[0];
+      this.group.remove(c);
+      if (c.geometry) c.geometry.dispose();
+      if (c.material) c.material.dispose();
+    }
+
+    this.weaponType = weaponType;
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
-    // 1. Load Blender Master 3D Club (Spiked octagonal head, runic core, gold studs)
-    GlobalModelLoader.loadOBJWithMTL('assets/models/megabonk_club.obj', 'assets/models/megabonk_club.mtl').then((model) => {
+    // Load Blender 3D Model
+    GlobalModelLoader.loadOBJWithMTL(modelPath, mtlPath).then((model) => {
       if (model) {
-        model.scale.set(1.0, 1.0, 1.0);
-        model.position.set(0, 0.2, 0);
+        if (weaponType === 'BOW') {
+          model.scale.set(1.2, 1.2, 1.2);
+          model.position.set(0, 0.4, 0);
+          model.rotation.set(0, Math.PI / 2, 0);
+        } else if (weaponType === 'STAFF') {
+          model.scale.set(1.1, 1.1, 1.1);
+          model.position.set(0, 0.1, 0);
+        } else if (weaponType === 'CHAINSWORD') {
+          model.scale.set(1.15, 1.15, 1.15);
+          model.position.set(0, 0.3, 0);
+        } else {
+          model.scale.set(1.0, 1.0, 1.0);
+          model.position.set(0, 0.2, 0);
+        }
         this.modelGroup.add(model);
       }
     });
 
-    // 2. Glowing Rune Gem at the Tip
-    const runeGeo = new THREE.OctahedronGeometry(0.18);
+    // Glowing Rune Gem / Energy Core at the Tip
+    const runeGeo = new THREE.OctahedronGeometry(0.16);
     this.runeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
     this.rune = new THREE.Mesh(runeGeo, this.runeMat);
-    this.rune.position.y = 2.4;
+    this.rune.position.y = (weaponType === 'STAFF' ? 2.4 : 2.2);
     this.group.add(this.rune);
 
     // Initial position & orientation inside the hand
     this.group.position.set(0, 0, 0);
     this.group.rotation.set(Math.PI / 4, 0, 0);
+  }
+
+  setWeaponClass(modelPath, mtlPath, weaponType, glowColor = 0x00ffff) {
+    this.buildWeaponMesh(modelPath, mtlPath, weaponType);
+    this.setGlowColor(glowColor);
   }
 
   buildTrailMesh() {
@@ -114,7 +141,7 @@ export class Weapon {
       this.rune.rotation.y += dt * 6.0;
     }
 
-    const tipLocal = new THREE.Vector3(0, 2.4, 0);
+    const tipLocal = new THREE.Vector3(0, 2.3, 0);
     const baseLocal = new THREE.Vector3(0, 0.2, 0);
 
     this.tipPosition.copy(tipLocal).applyMatrix4(this.group.matrixWorld);
