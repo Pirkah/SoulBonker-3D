@@ -100,6 +100,16 @@ class Game {
     this.clock = new THREE.Clock();
   }
 
+  startGame() {
+    if (this.gameState !== 'START') return;
+    const startModal = document.getElementById('start-modal');
+    if (startModal) startModal.style.display = 'none';
+    this.audio.init();
+    this.audio.resume();
+    this.gameState = 'PLAYING';
+    this.waveManager.startWave(1);
+  }
+
   initEvents() {
     window.addEventListener('resize', () => {
       this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -107,28 +117,48 @@ class Game {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Start Game Button
-    document.getElementById('start-btn').addEventListener('click', () => {
-      document.getElementById('start-modal').style.display = 'none';
-      this.audio.init();
-      this.audio.resume();
-      this.gameState = 'PLAYING';
-      this.waveManager.startWave(1);
+    // Start Game Button & Global Triggers
+    const startBtn = document.getElementById('start-btn');
+    if (startBtn) {
+      startBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.startGame();
+      });
+    }
+
+    const startModal = document.getElementById('start-modal');
+    if (startModal) {
+      startModal.addEventListener('click', () => {
+        this.startGame();
+      });
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (this.gameState === 'START') {
+        const k = e.key ? e.key.toLowerCase() : '';
+        if (e.code === 'Space' || k === ' ' || e.code === 'Enter' || e.code === 'KeyJ' || k === 'j') {
+          this.startGame();
+        }
+      }
     });
 
     // Sound Toggle Button
     const soundBtn = document.getElementById('sound-btn');
-    soundBtn.addEventListener('click', () => {
-      this.audio.init();
-      const isMuted = this.audio.toggleMute();
-      soundBtn.textContent = isMuted ? '🔇 MUET' : '🔊 SON';
-    });
+    if (soundBtn) {
+      soundBtn.addEventListener('click', () => {
+        this.audio.init();
+        const isMuted = this.audio.toggleMute();
+        soundBtn.textContent = isMuted ? '🔇 MUET' : '🔊 SON';
+      });
+    }
 
     // Pause Toggle
     const pauseBtn = document.getElementById('pause-btn');
-    pauseBtn.addEventListener('click', () => {
-      this.togglePause();
-    });
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', () => {
+        this.togglePause();
+      });
+    }
   }
 
   togglePause() {
