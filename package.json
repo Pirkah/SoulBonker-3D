@@ -1,0 +1,12 @@
+{
+  "name": "soulbonker-3d",
+  "version": "1.0.0",
+  "description": "Megabonk x Souls-Like 3D Rogue-lite Arena Game for Mac",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8080"
+  },
+  "keywords": ["game", "threejs", "souls-like", "roguelite", "megabonk"],
+  "author": "",
+  "license": "MIT"
+}
