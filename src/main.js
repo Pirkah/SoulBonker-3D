@@ -122,8 +122,12 @@ class Game {
     }
   }
 
-  startGame() {
+  startGame(classKey = null) {
     if (this.gameState !== 'START') return;
+
+    if (classKey) {
+      this.selectedClassKey = classKey;
+    }
 
     const classData = CHARACTER_CLASSES[this.selectedClassKey] || CHARACTER_CLASSES.KNIGHT;
     this.player.setClass(classData);
@@ -135,6 +139,7 @@ class Game {
     this.audio.resume();
     this.gameState = 'PLAYING';
     this.waveManager.startWave(1);
+    this.particles.spawnTextPopup(`⚔️ ${classData.name} PRÊT !`, this.player.position, classData.color || '#00f0ff', true);
   }
 
   initEvents() {
@@ -144,14 +149,14 @@ class Game {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Character Selection Cards Binding
+    // Character Selection Cards Binding: Clicking directly starts game with that class!
     const classKeys = ['KNIGHT', 'ARCHER', 'MAGE', 'SPACEMARINE'];
     classKeys.forEach((key) => {
       const card = document.querySelector(`.hero-card[data-class="${key}"]`);
       if (card) {
         card.addEventListener('click', (e) => {
           e.stopPropagation();
-          this.selectCharacterClass(key, false);
+          this.startGame(key);
         });
       }
 
@@ -159,7 +164,7 @@ class Game {
       if (btn) {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          this.selectCharacterClass(key, true);
+          this.startGame(key);
         });
       }
     });
@@ -178,16 +183,16 @@ class Game {
         const code = e.code;
         const key = e.key;
 
-        // Class Quick Select Keys
-        if (code === 'Digit1' || code === 'Numpad1' || key === '1') {
-          this.selectCharacterClass('KNIGHT', false);
-        } else if (code === 'Digit2' || code === 'Numpad2' || key === '2') {
-          this.selectCharacterClass('ARCHER', false);
-        } else if (code === 'Digit3' || code === 'Numpad3' || key === '3') {
-          this.selectCharacterClass('MAGE', false);
-        } else if (code === 'Digit4' || code === 'Numpad4' || key === '4') {
-          this.selectCharacterClass('SPACEMARINE', false);
-        } else if (code === 'Space' || key === ' ' || code === 'Enter' || code === 'KeyJ' || key === 'j') {
+        // Class Quick Select Keys -> immediately starts with that class!
+        if (code === 'Digit1' || code === 'Numpad1' || key === '1' || code === 'KeyJ' || key === 'j') {
+          this.startGame('KNIGHT');
+        } else if (code === 'Digit2' || code === 'Numpad2' || key === '2' || code === 'KeyK' || key === 'k') {
+          this.startGame('ARCHER');
+        } else if (code === 'Digit3' || code === 'Numpad3' || key === '3' || code === 'KeyL' || key === 'l') {
+          this.startGame('MAGE');
+        } else if (code === 'Digit4' || code === 'Numpad4' || key === '4' || code === 'KeyI' || key === 'i') {
+          this.startGame('SPACEMARINE');
+        } else if (code === 'Space' || key === ' ' || code === 'Enter') {
           this.startGame();
         }
       }
@@ -288,11 +293,7 @@ class Game {
     }
 
     if (this.gameState === 'START' && this.input.actions.startOrRestart) {
-      document.getElementById('start-modal').style.display = 'none';
-      this.audio.init();
-      this.audio.resume();
-      this.gameState = 'PLAYING';
-      this.waveManager.startWave(1);
+      this.startGame();
     }
 
     if (this.gameState === 'UPGRADE') {
