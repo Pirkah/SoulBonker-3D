@@ -1,6 +1,7 @@
 import * as THREE from '../../libs/three.module.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { Weapon } from './Weapon.js';
+import { GlobalModelLoader } from '../engine/ModelLoader.js';
 
 export class Player {
   constructor(scene) {
@@ -82,18 +83,18 @@ export class Player {
     const goldMat = new THREE.MeshStandardMaterial({ color: 0xddaa33, metalness: 0.85, roughness: 0.25 });
     const skinMat = new THREE.MeshStandardMaterial({ color: 0x334466, roughness: 0.7 });
 
-    // 1. Torso (Pivot at waist/center of mass)
-    const torsoGeo = new THREE.CylinderGeometry(0.42, 0.32, 0.95, 8);
-    this.torso = new THREE.Mesh(torsoGeo, armorMat);
+    // 1. Torso & Blender Master 3D Armor
+    this.torso = new THREE.Group();
     this.torso.position.y = 0.95;
-    this.torso.castShadow = true;
     this.bodyGroup.add(this.torso);
 
-    // Golden Chest Crest
-    const crestGeo = new THREE.BoxGeometry(0.46, 0.35, 0.42);
-    const crest = new THREE.Mesh(crestGeo, goldMat);
-    crest.position.set(0, 0.1, 0.08);
-    this.torso.add(crest);
+    GlobalModelLoader.loadOBJWithMTL('assets/models/player.obj', 'assets/models/player.mtl').then((model) => {
+      if (model) {
+        model.scale.set(0.9, 0.9, 0.9);
+        model.position.set(0, -0.95, 0);
+        this.torso.add(model);
+      }
+    });
 
     // Cape / Scarf
     const capeGeo = new THREE.PlaneGeometry(0.55, 0.85);

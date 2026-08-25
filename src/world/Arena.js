@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three.module.js';
+import { GlobalModelLoader } from '../engine/ModelLoader.js';
 
 export class Arena {
   constructor(scene, radius = 32) {
@@ -136,37 +137,21 @@ export class Arena {
 
     pillarPositions.forEach((pos) => {
       const pillarGroup = new THREE.Group();
-
-      // Stone base
-      const baseGeo = new THREE.CylinderGeometry(2.2, 2.5, 1.2, 12);
-      const pillarMat = new THREE.MeshStandardMaterial({ color: 0x3a4258, roughness: 0.85 });
-      const base = new THREE.Mesh(baseGeo, pillarMat);
-      base.position.y = 0.6;
-      base.castShadow = true;
-      pillarGroup.add(base);
-
-      // Monolith Shaft
-      const shaftGeo = new THREE.CylinderGeometry(1.6, 1.8, 7.5, 12);
-      const shaft = new THREE.Mesh(shaftGeo, pillarMat);
-      shaft.position.y = 4.5;
-      shaft.castShadow = true;
-      shaft.receiveShadow = true;
-      pillarGroup.add(shaft);
-
-      // Glowing Rune Inlay
-      const runeGeo = new THREE.CylinderGeometry(1.62, 1.62, 1.2, 12);
-      const runeMat = new THREE.MeshBasicMaterial({ color: 0x00d9ff });
-      const runeMesh = new THREE.Mesh(runeGeo, runeMat);
-      runeMesh.position.y = 4.2;
-      pillarGroup.add(runeMesh);
-
       pillarGroup.position.set(pos.x, 0, pos.z);
       this.group.add(pillarGroup);
 
-      // Store physics data
+      // Load Master Blender 3D Pillar Model
+      GlobalModelLoader.loadOBJWithMTL('assets/models/arena_pillar.obj', 'assets/models/arena_pillar.mtl').then((model) => {
+        if (model) {
+          model.scale.set(1.5, 1.5, 1.5);
+          pillarGroup.add(model);
+        }
+      });
+
+      // Store physics collision data
       this.pillars.push({
         position: new THREE.Vector3(pos.x, 0, pos.z),
-        radius: 2.0
+        radius: 2.2
       });
     });
   }

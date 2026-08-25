@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three.module.js';
+import { GlobalModelLoader } from '../engine/ModelLoader.js';
 
 export class Weapon {
   constructor(parentHand) {
@@ -25,69 +26,61 @@ export class Weapon {
   }
 
   buildWeaponMesh() {
-    // 1. Grip / Handle (Pivot is right at the hand center: Y=0)
-    const handleGeo = new THREE.CylinderGeometry(0.06, 0.07, 1.4, 8);
-    const handleMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.85 });
-    const handle = new THREE.Mesh(handleGeo, handleMat);
-    // Center the grip so the hand holds it at y=0
-    handle.position.y = 0.35;
-    handle.castShadow = true;
-    this.group.add(handle);
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
 
-    // Pommel (Bottom of handle)
-    const pommelGeo = new THREE.SphereGeometry(0.1, 8, 8);
-    const goldMat = new THREE.MeshStandardMaterial({ color: 0xddaa33, metalness: 0.8, roughness: 0.3 });
-    const pommel = new THREE.Mesh(pommelGeo, goldMat);
-    pommel.position.y = -0.35;
-    this.group.add(pommel);
-
-    // 2. Heavy Head (Megabonk Spiked Club / Hammer)
-    const headGeo = new THREE.CylinderGeometry(0.28, 0.18, 1.1, 8);
-    const headMat = new THREE.MeshStandardMaterial({
-      color: 0x707888,
-      metalness: 0.7,
-      roughness: 0.35
+    // 1. Load Blender Master 3D Club (Spiked octagonal head, runic core, gold studs)
+    GlobalModelLoader.loadOBJWithMTL('assets/models/megabonk_club.obj', 'assets/models/megabonk_club.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.0, 1.0, 1.0);
+        model.position.set(0, 0.2, 0);
+        this.modelGroup.add(model);
+      }
     });
-    this.head = new THREE.Mesh(headGeo, headMat);
-    this.head.position.y = 1.35;
-    this.head.castShadow = true;
-    this.group.add(this.head);
 
-    // 3. Spikes / Studs on Head
-    for (let i = 0; i < 6; i++) {
-      const spikeGeo = new THREE.ConeGeometry(0.09, 0.3, 5);
-      const spike = new THREE.Mesh(spikeGeo, goldMat);
-      const angle = (i * Math.PI) / 3;
-      spike.position.set(Math.sin(angle) * 0.24, 1.15 + (i % 2) * 0.35, Math.cos(angle) * 0.24);
-      spike.rotation.z = Math.PI / 2;
-      spike.rotation.y = angle;
-      this.group.add(spike);
-    }
-
-    // 4. Glowing Rune Core at the Tip
-    const runeGeo = new THREE.SphereGeometry(0.14, 8, 8);
+    // 2. Glowing Rune Gem at the Tip
+    const runeGeo = new THREE.OctahedronGeometry(0.18);
     this.runeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-    const rune = new THREE.Mesh(runeGeo, this.runeMat);
-    rune.position.y = 1.95;
-    this.group.add(rune);
+    this.rune = new THREE.Mesh(runeGeo, this.runeMat);
+    this.rune.position.y = 2.4;
+    this.group.add(this.rune);
 
     // Initial position & orientation inside the hand
     this.group.position.set(0, 0, 0);
-    this.group.rotation.set(Math.PI / 4, 0, 0); // Natural angled grip
+    this.group.rotation.set(Math.PI / 4, 0, 0);
   }
 
   buildTrailMesh() {
     this.trailGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(this.maxTrailLength * 2 * 3);
-    this.trailGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.trailGeo.setDrawRange(0, 0); // Don't draw anything initially!
+    const maxPoints = this.maxTrailLength * 2;
+    const positions = new Float32Array(maxPoints * 3);
+    const alphas = new Float32Array(maxPoints);
 
-    this.trailMat = new THREE.MeshBasicMaterial({
-      color: 0x00f0ff,
-      side: THREE.DoubleSide,
+    this.trailGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    this.trailGeo.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
+
+    this.trailMat = new THREE.ShaderMaterial({
       transparent: true,
-      opacity: 0.55,
-      depthWrite: false
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      uniforms: {
+        uColor: { value: new THREE.Color(0x00ffff) }
+      },
+      vertexShader: `
+        attribute float alpha;
+        varying float vAlpha;
+        void main() {
+          vAlpha = alpha;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        varying float vAlpha;
+        void main() {
+          gl_FragColor = vec4(uColor, vAlpha * 0.7);
+        }
+      `
     });
 
     this.trailMesh = new THREE.Mesh(this.trailGeo, this.trailMat);
@@ -95,37 +88,49 @@ export class Weapon {
     this.trailMesh.visible = false;
   }
 
-  setScale(multiplier) {
-    this.currentScale = this.baseScale * multiplier;
-    this.rangeMultiplier = multiplier;
+  setScale(scaleMultiplier) {
+    this.rangeMultiplier = scaleMultiplier;
+    this.currentScale = this.baseScale * scaleMultiplier;
     this.group.scale.set(this.currentScale, this.currentScale, this.currentScale);
   }
 
-  setGlowColor(colorHex) {
+  setGlowColor(hex) {
     if (this.runeMat) {
-      this.runeMat.color.setHex(colorHex);
+      this.runeMat.color.setHex(hex);
     }
     if (this.trailMat) {
-      this.trailMat.color.setHex(colorHex);
+      this.trailMat.uniforms.uColor.value.setHex(hex);
     }
   }
 
-  update(isAttacking) {
-    // Get World Position of weapon tip & base
-    const localTip = new THREE.Vector3(0, 2.0 * this.currentScale, 0);
-    const localBase = new THREE.Vector3(0, 0.2 * this.currentScale, 0);
+  update(dt, isAttacking, worldScene) {
+    if (!worldScene) return;
 
-    this.tipPosition.copy(localTip).applyMatrix4(this.group.matrixWorld);
-    this.basePosition.copy(localBase).applyMatrix4(this.group.matrixWorld);
+    if (this.trailMesh.parent !== worldScene) {
+      worldScene.add(this.trailMesh);
+    }
+
+    if (this.rune) {
+      this.rune.rotation.y += dt * 6.0;
+    }
+
+    const tipLocal = new THREE.Vector3(0, 2.4, 0);
+    const baseLocal = new THREE.Vector3(0, 0.2, 0);
+
+    this.tipPosition.copy(tipLocal).applyMatrix4(this.group.matrixWorld);
+    this.basePosition.copy(baseLocal).applyMatrix4(this.group.matrixWorld);
 
     if (isAttacking) {
+      this.trailMesh.visible = true;
       this.trailHistory.unshift({
         tip: this.tipPosition.clone(),
         base: this.basePosition.clone()
       });
+
       if (this.trailHistory.length > this.maxTrailLength) {
         this.trailHistory.pop();
       }
+
       this.updateTrailGeometry();
     } else {
       if (this.trailHistory.length > 0) {
@@ -133,29 +138,34 @@ export class Weapon {
         this.updateTrailGeometry();
       } else {
         this.trailMesh.visible = false;
-        this.trailGeo.setDrawRange(0, 0);
       }
     }
   }
 
   updateTrailGeometry() {
-    if (this.trailHistory.length < 2) {
-      this.trailMesh.visible = false;
-      this.trailGeo.setDrawRange(0, 0);
-      return;
-    }
-
-    this.trailMesh.visible = true;
     const posAttr = this.trailGeo.getAttribute('position');
-    let idx = 0;
+    const alphaAttr = this.trailGeo.getAttribute('alpha');
+    const positions = posAttr.array;
+    const alphas = alphaAttr.array;
 
-    for (let i = 0; i < this.trailHistory.length; i++) {
+    const count = this.trailHistory.length;
+    for (let i = 0; i < count; i++) {
       const pt = this.trailHistory[i];
-      posAttr.setXYZ(idx++, pt.tip.x, pt.tip.y, pt.tip.z);
-      posAttr.setXYZ(idx++, pt.base.x, pt.base.y, pt.base.z);
+      const factor = 1.0 - i / count;
+
+      positions[i * 6 + 0] = pt.tip.x;
+      positions[i * 6 + 1] = pt.tip.y;
+      positions[i * 6 + 2] = pt.tip.z;
+      alphas[i * 2 + 0] = factor;
+
+      positions[i * 6 + 3] = pt.base.x;
+      positions[i * 6 + 4] = pt.base.y;
+      positions[i * 6 + 5] = pt.base.z;
+      alphas[i * 2 + 1] = factor;
     }
 
     posAttr.needsUpdate = true;
-    this.trailGeo.setDrawRange(0, this.trailHistory.length * 2);
+    alphaAttr.needsUpdate = true;
+    this.trailGeo.setDrawRange(0, count * 2);
   }
 }

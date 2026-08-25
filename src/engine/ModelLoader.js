@@ -1,31 +1,86 @@
 import * as THREE from '../../libs/three.module.js';
 
 /**
- * Fast, offline 3D Model Loader for Blender-exported OBJ assets
+ * Fast, offline 3D Model Loader for Blender-exported OBJ & MTL assets
  */
 export class ModelLoader {
   constructor() {
     this.cache = new Map();
   }
 
-  async loadOBJ(url, defaultMaterial = null) {
-    if (this.cache.has(url)) {
-      return this.cache.get(url).clone();
+  async loadOBJWithMTL(objUrl, mtlUrl = null) {
+    if (this.cache.has(objUrl)) {
+      return this.cache.get(objUrl).clone();
     }
 
     try {
-      const response = await fetch(url);
+      let materials = {};
+      if (mtlUrl) {
+        try {
+          const mtlRes = await fetch(mtlUrl);
+          const mtlText = await mtlRes.text();
+          materials = this.parseMTL(mtlText);
+        } catch (e) {
+          console.warn('MTL load skipped:', e);
+        }
+      }
+
+      const response = await fetch(objUrl);
       const text = await response.text();
-      const group = this.parseOBJ(text, defaultMaterial);
-      this.cache.set(url, group);
+      const group = this.parseOBJ(text, materials);
+      this.cache.set(objUrl, group);
       return group.clone();
     } catch (e) {
-      console.warn(`Could not load 3D model from ${url}:`, e);
+      console.warn(`Could not load 3D model from ${objUrl}:`, e);
       return new THREE.Group();
     }
   }
 
-  parseOBJ(text, defaultMaterial) {
+  parseMTL(text) {
+    const materials = {};
+    let currentMat = null;
+    const lines = text.split('\n');
+
+    for (let line of lines) {
+      line = line.trim();
+      if (!line || line.startsWith('#')) continue;
+      const parts = line.split(/\s+/);
+      const type = parts[0];
+
+      if (type === 'newmtl') {
+        currentMat = parts[1];
+        materials[currentMat] = {
+          color: 0xcccccc,
+          roughness: 0.6,
+          metalness: 0.1,
+          emissive: 0x000000
+        };
+      } else if (currentMat) {
+        if (type === 'Kd') {
+          const r = parseFloat(parts[1]);
+          const g = parseFloat(parts[2]);
+          const b = parseFloat(parts[3]);
+          materials[currentMat].color = new THREE.Color(r, g, b);
+        } else if (type === 'Ke') {
+          const r = parseFloat(parts[1]);
+          const g = parseFloat(parts[2]);
+          const b = parseFloat(parts[3]);
+          if (r > 0.05 || g > 0.05 || b > 0.05) {
+            materials[currentMat].emissive = new THREE.Color(r, g, b);
+          }
+        } else if (type === 'Ks') {
+          const r = parseFloat(parts[1]);
+          materials[currentMat].metalness = Math.min(1.0, r * 0.9);
+        } else if (type === 'Ns') {
+          const ns = parseFloat(parts[1]);
+          materials[currentMat].roughness = Math.max(0.1, 1.0 - ns / 700.0);
+        }
+      }
+    }
+    return materials;
+  }
+
+  parseOBJ(text, materialsMap = {}) {
     const lines = text.split('\n');
     const positions = [];
     const normals = [];
@@ -33,6 +88,7 @@ export class ModelLoader {
 
     const group = new THREE.Group();
 
+    let currentMtlName = null;
     let currentObject = null;
     let currentVertices = [];
     let currentNormals = [];
@@ -52,10 +108,13 @@ export class ModelLoader {
         geometry.setAttribute('uv', new THREE.Float32BufferAttribute(currentUvs, 2));
       }
 
-      const mat = defaultMaterial || new THREE.MeshStandardMaterial({
-        color: 0xcccccc,
-        roughness: 0.5,
-        metalness: 0.2
+      // Material Lookup from MTL
+      let matConfig = materialsMap[currentMtlName] || { color: 0xcccccc, roughness: 0.5, metalness: 0.2 };
+      const mat = new THREE.MeshStandardMaterial({
+        color: matConfig.color || 0xcccccc,
+        roughness: matConfig.roughness !== undefined ? matConfig.roughness : 0.5,
+        metalness: matConfig.metalness !== undefined ? matConfig.metalness : 0.2,
+        emissive: matConfig.emissive || 0x000000
       });
 
       const mesh = new THREE.Mesh(geometry, mat);
@@ -76,7 +135,10 @@ export class ModelLoader {
       const parts = line.split(/\s+/);
       const type = parts[0];
 
-      if (type === 'o' || type === 'g') {
+      if (type === 'usemtl') {
+        flushMesh();
+        currentMtlName = parts[1];
+      } else if (type === 'o' || type === 'g') {
         flushMesh();
         currentObject = parts[1] || 'Mesh';
       } else if (type === 'v') {
@@ -86,7 +148,6 @@ export class ModelLoader {
       } else if (type === 'vt') {
         uvs.push([parseFloat(parts[1]), parseFloat(parts[2])]);
       } else if (type === 'f') {
-        // Handle triangles and quads
         const faceVertices = [];
         for (let i = 1; i < parts.length; i++) {
           const vertParts = parts[i].split('/');
@@ -101,7 +162,7 @@ export class ModelLoader {
           });
         }
 
-        // Fan triangulation for quads / n-gons
+        // Triangulate
         for (let i = 1; i < faceVertices.length - 1; i++) {
           const tri = [faceVertices[0], faceVertices[i], faceVertices[i + 1]];
           for (const v of tri) {

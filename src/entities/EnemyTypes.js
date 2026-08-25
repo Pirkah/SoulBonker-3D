@@ -2,6 +2,7 @@ import * as THREE from '../../libs/three.module.js';
 import { Enemy } from './Enemy.js';
 import { Projectile, ExamPaperProjectile } from './Projectile.js';
 import { MathUtils } from '../utils/MathUtils.js';
+import { GlobalModelLoader } from '../engine/ModelLoader.js';
 
 // ==========================================
 // 1. BONKLING (Fast Goblin Swarmer)
@@ -24,43 +25,41 @@ export class Bonkling extends Enemy {
   }
 
   buildMesh() {
-    const bodyGeo = new THREE.DodecahedronGeometry(0.5);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x33aa44, roughness: 0.7 });
-    this.bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-    this.bodyMesh.position.y = 0.6;
-    this.bodyMesh.castShadow = true;
-    this.group.add(this.bodyMesh);
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
 
+    // Load Blender 3D Model
+    GlobalModelLoader.loadOBJWithMTL('assets/models/bonkling.obj', 'assets/models/bonkling.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.0, 1.0, 1.0);
+        this.modelGroup.add(model);
+      }
+    });
+
+    // Procedural eye lights
     const eyeGeo = new THREE.BoxGeometry(0.12, 0.08, 0.1);
     this.eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0022 });
     const eyeL = new THREE.Mesh(eyeGeo, this.eyeMat);
-    eyeL.position.set(-0.18, 0.15, 0.4);
-    this.bodyMesh.add(eyeL);
+    eyeL.position.set(-0.18, 0.65, 0.4);
+    this.group.add(eyeL);
 
     const eyeR = new THREE.Mesh(eyeGeo, this.eyeMat);
-    eyeR.position.set(0.18, 0.15, 0.4);
-    this.bodyMesh.add(eyeR);
-
-    const batGeo = new THREE.CylinderGeometry(0.08, 0.14, 0.9, 6);
-    const batMat = new THREE.MeshStandardMaterial({ color: 0x664422 });
-    this.bat = new THREE.Mesh(batGeo, batMat);
-    this.bat.position.set(0.4, 0.6, 0.3);
-    this.bat.rotation.set(0.2, 0, -0.4);
-    this.group.add(this.bat);
+    eyeR.position.set(0.18, 0.65, 0.4);
+    this.group.add(eyeR);
   }
 
   animateWalk(dt) {
-    this.bodyMesh.position.y = 0.6 + Math.abs(Math.sin(this.stateTimer * 12)) * 0.2;
-    this.bat.rotation.x = 0.2 + Math.sin(this.stateTimer * 12) * 0.3;
+    this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 12)) * 0.2;
+    this.modelGroup.rotation.z = Math.sin(this.stateTimer * 12) * 0.1;
   }
 
   animateTelegraph(progress) {
-    this.bodyMesh.position.y = 0.6 + Math.sin(progress * Math.PI) * 0.3;
-    this.bat.rotation.x = -progress * 1.5;
+    this.modelGroup.position.y = Math.sin(progress * Math.PI) * 0.3;
+    this.modelGroup.rotation.x = -progress * 0.4;
   }
 
   animateAttack(progress) {
-    this.bat.rotation.x = progress * 2.0 - 0.5;
+    this.modelGroup.rotation.x = progress * 0.8 - 0.3;
   }
 
   performAttack(player, audio, particles) {
@@ -95,59 +94,32 @@ export class HammerBrute extends Enemy {
   }
 
   buildMesh() {
-    this.group.scale.set(1.4, 1.4, 1.4);
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
 
-    const bodyGeo = new THREE.BoxGeometry(1.2, 1.4, 1.0);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x444b59, roughness: 0.8 });
-    this.bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-    this.bodyMesh.position.y = 1.2;
-    this.bodyMesh.castShadow = true;
-    this.group.add(this.bodyMesh);
-
-    const hornGeo = new THREE.ConeGeometry(0.18, 0.6, 5);
-    const hornMat = new THREE.MeshStandardMaterial({ color: 0xaa2222, roughness: 0.3 });
-    const hornL = new THREE.Mesh(hornGeo, hornMat);
-    hornL.position.set(-0.45, 0.7, 0.2);
-    hornL.rotation.z = 0.6;
-    this.bodyMesh.add(hornL);
-
-    const hornR = new THREE.Mesh(hornGeo, hornMat);
-    hornR.position.set(0.45, 0.7, 0.2);
-    hornR.rotation.z = -0.6;
-    this.bodyMesh.add(hornR);
-
-    const handleGeo = new THREE.CylinderGeometry(0.1, 0.1, 2.2, 8);
-    const handleMat = new THREE.MeshStandardMaterial({ color: 0x332211 });
-    this.hammer = new THREE.Mesh(handleGeo, handleMat);
-    
-    const headGeo = new THREE.BoxGeometry(0.8, 1.2, 0.8);
-    const headMat = new THREE.MeshStandardMaterial({ color: 0x666b75, metalness: 0.4 });
-    const head = new THREE.Mesh(headGeo, headMat);
-    head.position.y = 1.0;
-    this.hammer.add(head);
-
-    this.hammer.position.set(0.9, 1.0, 0.3);
-    this.hammer.rotation.set(-0.2, 0, -0.4);
-    this.group.add(this.hammer);
+    // Load Blender 3D Model
+    GlobalModelLoader.loadOBJWithMTL('assets/models/hammer_brute.obj', 'assets/models/hammer_brute.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.3, 1.3, 1.3);
+        this.modelGroup.add(model);
+      }
+    });
 
     this.telegraphMesh.geometry.dispose();
     this.telegraphMesh.geometry = new THREE.RingGeometry(0.2, 4.2, 32);
   }
 
   animateWalk(dt) {
-    this.bodyMesh.position.y = 1.2 + Math.abs(Math.sin(this.stateTimer * 6)) * 0.15;
-    this.bodyMesh.rotation.z = Math.sin(this.stateTimer * 6) * 0.1;
+    this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 6)) * 0.15;
+    this.modelGroup.rotation.z = Math.sin(this.stateTimer * 6) * 0.1;
   }
 
   animateTelegraph(progress) {
-    this.hammer.rotation.x = -progress * Math.PI * 1.1;
-    this.hammer.position.y = 1.0 + progress * 0.8;
-    this.bodyMesh.rotation.x = -progress * 0.3;
+    this.modelGroup.rotation.x = -progress * 0.5;
   }
 
   animateAttack(progress) {
-    this.hammer.rotation.x = progress * Math.PI * 1.3 - 1.0;
-    this.bodyMesh.rotation.x = progress * 0.4;
+    this.modelGroup.rotation.x = progress * 0.7 - 0.2;
   }
 
   performAttack(player, audio, particles) {
@@ -192,37 +164,29 @@ export class VoidMage extends Enemy {
   }
 
   buildMesh() {
-    const robeGeo = new THREE.ConeGeometry(0.6, 1.6, 8);
-    const robeMat = new THREE.MeshStandardMaterial({ color: 0x4a1568, roughness: 0.6 });
-    this.bodyMesh = new THREE.Mesh(robeGeo, robeMat);
-    this.bodyMesh.position.y = 1.2;
-    this.group.add(this.bodyMesh);
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
 
-    const coreGeo = new THREE.SphereGeometry(0.25, 8, 8);
-    this.coreMat = new THREE.MeshBasicMaterial({ color: 0xcc00ff });
-    this.core = new THREE.Mesh(coreGeo, this.coreMat);
-    this.core.position.y = 1.6;
-    this.group.add(this.core);
-
-    const crystalGeo = new THREE.OctahedronGeometry(0.25);
-    const crystalMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-    this.crystal = new THREE.Mesh(crystalGeo, crystalMat);
-    this.crystal.position.set(0.6, 1.5, 0.4);
-    this.group.add(this.crystal);
+    // Load Blender 3D Model
+    GlobalModelLoader.loadOBJWithMTL('assets/models/void_mage.obj', 'assets/models/void_mage.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.0, 1.0, 1.0);
+        this.modelGroup.add(model);
+      }
+    });
   }
 
   animateWalk(dt) {
     this.position.y = 0.3 + Math.sin(this.stateTimer * 4) * 0.25;
-    this.crystal.rotation.y += dt * 5;
+    this.modelGroup.rotation.y += dt * 3.0;
   }
 
   animateTelegraph(progress) {
-    this.coreMat.color.setHex(0xff00ff);
-    this.crystal.position.y = 1.5 + progress * 0.6;
+    this.modelGroup.position.y = 0.3 + progress * 0.5;
   }
 
   animateAttack(progress) {
-    this.crystal.position.y = 1.8 - progress * 0.4;
+    this.modelGroup.position.y = 0.6 - progress * 0.3;
   }
 
   performAttack(player, audio, particles) {
@@ -237,17 +201,8 @@ export class VoidMage extends Enemy {
 }
 
 // ==========================================
-// 4. LE PROFESSEUR D'AMPHI (Main Boss - Exact Clean Cutout)
+// 4. LE PROFESSEUR D'AMPHI (3D Master Blender Boss)
 // ==========================================
-let cachedProfTexture = null;
-
-function getProfessorFullBodyTexture() {
-  if (cachedProfTexture) return cachedProfTexture;
-  const loader = new THREE.TextureLoader();
-  cachedProfTexture = loader.load('assets/prof_boss_clean.png');
-  return cachedProfTexture;
-}
-
 export class ProfesseurAmphi extends Enemy {
   constructor(scene, x, z, projectilesList) {
     super(scene, x, z);
@@ -278,68 +233,60 @@ export class ProfesseurAmphi extends Enemy {
   }
 
   buildProfessorMesh() {
-    this.group.scale.set(1.0, 1.0, 1.0);
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
 
-    // 1. FULL-BODY STANDING CUTOUT (Exact Photo from assets/prof_boss_clean.png)
-    const profTexture = getProfessorFullBodyTexture();
-    const bodyGeo = new THREE.PlaneGeometry(2.1, 5.17);
-    this.bodyMat = new THREE.MeshBasicMaterial({
-      map: profTexture,
-      side: THREE.DoubleSide,
-      transparent: true,
-      alphaTest: 0.08
+    // 1. Load Master Blender 3D Model (White Sweater, Blue Collar, Trousers, Glasses, Colossal Pen)
+    GlobalModelLoader.loadOBJWithMTL('assets/models/prof_boss.obj', 'assets/models/prof_boss.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.4, 1.4, 1.4);
+        this.modelGroup.add(model);
+      }
     });
 
-    this.bodyMesh = new THREE.Mesh(bodyGeo, this.bodyMat);
-    this.bodyMesh.position.y = 2.58; // Feet solidly planted on the floor!
-    this.group.add(this.bodyMesh);
+    // 2. High-Definition Photo Texture Face Overlay on 3D Head
+    const textureLoader = new THREE.TextureLoader();
+    const faceTex = textureLoader.load('assets/prof_boss_clean.png');
+    const portraitGeo = new THREE.PlaneGeometry(1.6, 2.8);
+    this.portraitMat = new THREE.MeshBasicMaterial({
+      map: faceTex,
+      side: THREE.DoubleSide,
+      transparent: true,
+      alphaTest: 0.1
+    });
+    this.portrait = new THREE.Mesh(portraitGeo, this.portraitMat);
+    this.portrait.position.set(0, 3.2, 0.1);
+    this.group.add(this.portrait);
 
-    // 3D Shadow on the floor beneath his shoes
-    const shadowGeo = new THREE.RingGeometry(0.2, 1.6, 24);
+    // 3. 3D Shadow on the floor
+    const shadowGeo = new THREE.RingGeometry(0.2, 1.8, 24);
     const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
     const shadow = new THREE.Mesh(shadowGeo, shadowMat);
     shadow.rotation.x = -Math.PI / 2;
     shadow.position.y = 0.05;
     this.group.add(shadow);
 
-    // Glowing Academic Rune on the floor
-    const runeGeo = new THREE.RingGeometry(1.6, 2.2, 32);
-    this.floorRuneMat = new THREE.MeshBasicMaterial({ color: 0xff0044, transparent: true, opacity: 0.45 });
+    // Glowing Floor Rune
+    const runeGeo = new THREE.RingGeometry(1.8, 2.5, 32);
+    this.floorRuneMat = new THREE.MeshBasicMaterial({ color: 0xff0044, transparent: true, opacity: 0.5 });
     this.floorRune = new THREE.Mesh(runeGeo, this.floorRuneMat);
     this.floorRune.rotation.x = -Math.PI / 2;
     this.floorRune.position.y = 0.06;
     this.group.add(this.floorRune);
 
-    // 2. LASER EYES (Aligned with his eyes in the photo at Y = 4.45)
+    // 4. Laser Eyes
     const eyeGeo = new THREE.SphereGeometry(0.08, 8, 8);
     this.laserEyeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
     
     this.eyeL = new THREE.Mesh(eyeGeo, this.laserEyeMat);
-    this.eyeL.position.set(-0.16, 4.45, 0.08);
+    this.eyeL.position.set(-0.16, 4.2, 0.15);
     this.group.add(this.eyeL);
 
     this.eyeR = new THREE.Mesh(eyeGeo, this.laserEyeMat);
-    this.eyeR.position.set(0.16, 4.45, 0.08);
+    this.eyeR.position.set(0.16, 4.2, 0.15);
     this.group.add(this.eyeR);
 
-    // 3. COLOSSAL RED GRADING PEN ("STYLO ROUGE 0/20")
-    this.penGroup = new THREE.Group();
-    const penBodyGeo = new THREE.CylinderGeometry(0.12, 0.12, 3.2, 8);
-    const penBodyMat = new THREE.MeshStandardMaterial({ color: 0xee1133, metalness: 0.7, roughness: 0.3 });
-    const pen = new THREE.Mesh(penBodyGeo, penBodyMat);
-
-    const nibGeo = new THREE.ConeGeometry(0.2, 0.7, 8);
-    const nibMat = new THREE.MeshBasicMaterial({ color: 0xff0044 });
-    const nib = new THREE.Mesh(nibGeo, nibMat);
-    nib.position.y = 1.95;
-    pen.add(nib);
-
-    this.penGroup.add(pen);
-    this.penGroup.position.set(1.4, 2.4, 0.4);
-    this.penGroup.rotation.set(-0.3, 0, -0.4);
-    this.group.add(this.penGroup);
-
-    // 4. ORBITING EXAM PAPERS ("COPIES D'EXAMEN 0/20")
+    // 5. Orbiting 3D Exam Papers ("0/20")
     this.examRing = new THREE.Group();
     this.group.add(this.examRing);
     for (let i = 0; i < 4; i++) {
@@ -352,29 +299,27 @@ export class ProfesseurAmphi extends Enemy {
       this.examRing.add(sheet);
     }
 
-    // Expanding Telegraph Ring
+    // Telegraph indicator
     this.telegraphMesh.geometry.dispose();
     this.telegraphMesh.geometry = new THREE.RingGeometry(0.3, 7.8, 36);
   }
 
   animateWalk(dt) {
-    this.bodyMesh.position.y = 2.6 + Math.abs(Math.sin(this.stateTimer * 5)) * 0.2;
-    this.bodyMesh.rotation.z = Math.sin(this.stateTimer * 5) * 0.05;
+    this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 5)) * 0.15;
+    this.portrait.position.y = 3.2 + Math.abs(Math.sin(this.stateTimer * 5)) * 0.15;
+    this.modelGroup.rotation.y = Math.sin(this.stateTimer * 5) * 0.05;
 
-    // Spin floor rune & exam ring
     if (this.floorRune) this.floorRune.rotation.z += dt * 1.5;
     if (this.examRing) this.examRing.rotation.y += dt * 4.0;
   }
 
   animateTelegraph(progress) {
-    // Raise giant red grading pen
-    this.penGroup.rotation.x = -progress * Math.PI * 1.2;
-    this.penGroup.position.y = 2.4 + progress * 1.4;
+    this.modelGroup.rotation.x = -progress * 0.5;
     this.laserEyeMat.color.setHex(0xff0022);
   }
 
   animateAttack(progress) {
-    this.penGroup.rotation.x = progress * Math.PI * 1.5 - 1.2;
+    this.modelGroup.rotation.x = progress * 0.8 - 0.3;
   }
 
   performAttack(player, audio, particles) {
@@ -417,7 +362,7 @@ export class ProfesseurAmphi extends Enemy {
         }
       }
     }
-    // ATTACK 3: "COUP DE STYLO ROUGE" (Estoc)
+    // ATTACK 3: "COUP DE STYLO ROUGE"
     else {
       audio.playSwing(true);
       particles.spawnHitSparks(this.position, 0, 0, 14, true);
