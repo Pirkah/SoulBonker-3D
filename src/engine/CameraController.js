@@ -12,10 +12,14 @@ export class CameraController {
     this.pitch = 0.55; // Angle looking down in radians
     this.yaw = 0; // Horizontal orbit angle
 
-    // Current smoothed position and target
-    this.currentPosition = new THREE.Vector3();
-    this.lookAtTarget = new THREE.Vector3();
-    this.smoothedLookAt = new THREE.Vector3();
+    // Current smoothed position and target initialized immediately
+    const initOffsetX = Math.sin(this.yaw) * this.distance * Math.cos(this.pitch);
+    const initOffsetZ = Math.cos(this.yaw) * this.distance * Math.cos(this.pitch);
+    this.currentPosition = new THREE.Vector3(initOffsetX, this.height, initOffsetZ);
+    this.lookAtTarget = new THREE.Vector3(0, 1.2, 0);
+    this.smoothedLookAt = new THREE.Vector3(0, 1.2, 0);
+    this.camera.position.copy(this.currentPosition);
+    this.camera.lookAt(this.smoothedLookAt);
 
     // Lock-on target
     this.lockOnTarget = null;
