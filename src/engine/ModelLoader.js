@@ -18,14 +18,20 @@ export class ModelLoader {
       if (mtlUrl) {
         try {
           const mtlRes = await fetch(mtlUrl);
-          const mtlText = await mtlRes.text();
-          materials = this.parseMTL(mtlText);
+          if (mtlRes && mtlRes.ok) {
+            const mtlText = await mtlRes.text();
+            materials = this.parseMTL(mtlText);
+          }
         } catch (e) {
           console.warn('MTL load skipped:', e);
         }
       }
 
       const response = await fetch(objUrl);
+      if (!response || !response.ok) {
+        throw new Error(`Failed to load ${objUrl} (Status: ${response?.status})`);
+      }
+
       const text = await response.text();
       const group = this.parseOBJ(text, materials);
       this.cache.set(objUrl, group);
