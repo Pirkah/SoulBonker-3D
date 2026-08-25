@@ -214,8 +214,7 @@ export class Player {
       this.megaBonkTimer -= dt;
       if (this.megaBonkTimer <= 0) {
         this.megaBonkBuff = false;
-        this.visorMat.color.setHex(0x00f0ff);
-        this.weapon.setGlowColor(0x00f0ff);
+        if (this.weapon) this.weapon.setGlowColor(this.currentClass.color || 0x00f0ff);
       }
     }
 
@@ -425,8 +424,7 @@ export class Player {
       this.isExhausted = false;
       this.megaBonkBuff = true;
       this.megaBonkTimer = 3.5;
-      this.visorMat.color.setHex(0xffcc00);
-      this.weapon.setGlowColor(0xffcc00);
+      if (this.weapon) this.weapon.setGlowColor(0xffcc00);
 
       audio.playPerfectDodge();
       particles.spawnShockwave(this.position, 8.5, 0x00ffff, 0.55);

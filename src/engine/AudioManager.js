@@ -108,12 +108,30 @@ export class AudioManager {
     osc.stop(now + 0.4);
 
     // Add noise click for sharp crack impact
-    this.playNoiseCrack(now, isCrit ? 0.08 : 0.04, isCrit ? 0.6 : 0.35);
-
-    // Extra sub bass for critical mega bonks
-    if (isCrit) {
-      this.playSubBass(now, 0.3, 0.8);
+    this.playNoiseCrack(now, isCrit ? 0.08 : 0.04, isCrit ? 0.8 : 0.4);
+    if (isCrit || force > 1.2) {
+      this.playSubBass(now, 0.25, 0.6);
     }
+  }
+
+  playHit(force = 1.0, isCrit = false) {
+    this.playBonk(force, isCrit);
+  }
+
+  playDeath() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(160, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.8);
+    gain.gain.setValueAtTime(0.7, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.9);
   }
 
   playNoiseCrack(startTime, duration, volume) {
