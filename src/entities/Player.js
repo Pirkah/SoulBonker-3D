@@ -487,8 +487,8 @@ export class Player {
     const dodgeDuration = 0.44;
     const progress = this.stateTimer / dodgeDuration;
 
-    // Smooth full 360 somersault flip
-    this.bodyGroup.rotation.x = -progress * Math.PI * 2;
+    // Natural forward 360 somersault flip in movement direction
+    this.bodyGroup.rotation.x = progress * Math.PI * 2;
     this.bodyGroup.position.y = Math.sin(progress * Math.PI) * 0.5;
 
     // Ghost Dash perk
