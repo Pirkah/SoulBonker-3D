@@ -870,47 +870,51 @@
     #duel-hud {
       display: none;
       position: absolute;
-      top: 20px;
+      top: 14px;
       left: 50%;
       transform: translateX(-50%);
       flex-direction: column;
       align-items: center;
       gap: 6px;
-      width: 340px;
-      background: var(--bg-dark);
-      padding: 12px 20px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 0, 85, 0.4);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 0 25px rgba(255, 0, 85, 0.3);
+      width: 360px;
+      max-width: calc(100vw - 320px);
+      background: rgba(14, 18, 30, 0.92);
+      padding: 10px 18px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(255, 0, 85, 0.5);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 0 30px rgba(255, 0, 85, 0.25), 0 8px 24px rgba(0,0,0,0.6);
       z-index: 15;
+      pointer-events: none;
     }
 
     #duel-opp-header {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       width: 100%;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 1px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
     }
 
     #duel-opp-hp-track {
       width: 100%;
       height: 14px;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.8);
       border-radius: 7px;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
     }
 
     #duel-opp-hp-fill {
       height: 100%;
       width: 100%;
-      background: linear-gradient(90deg, #ff0055, #ff7700);
+      background: linear-gradient(90deg, #ff0055, #ff6600);
       border-radius: 7px;
-      transition: width 0.12s ease-out;
-      box-shadow: 0 0 12px rgba(255, 0, 85, 0.6);
+      transition: width 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 14px rgba(255, 0, 85, 0.7);
     }
 
     /* 1V1 LOBBY CLASS CHIPS */
@@ -1169,6 +1173,19 @@
       }
       #duel-room-input {
         width: 130px !important;
+      }
+      #duel-hud {
+        top: 60px !important;
+        width: 250px !important;
+        max-width: 85vw !important;
+        padding: 8px 14px !important;
+        border-radius: 12px !important;
+      }
+      #duel-opp-header {
+        font-size: 11px !important;
+      }
+      #duel-opp-hp-track {
+        height: 10px !important;
       }
       .cards-grid {
         grid-template-columns: 1fr !important;

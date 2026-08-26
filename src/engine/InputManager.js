@@ -147,6 +147,10 @@ export class InputManager {
   }
 
   onMouseDown(e) {
+    // Ignore synthetic mouse events on touch devices (handled by TouchControls action buttons)
+    if (this.touchControls && this.touchControls.isTouchDevice()) {
+      return;
+    }
     if (e.button === 0) { // Left click
       this.actions.lightAttack = true;
       this.actions.startOrRestart = true;
@@ -159,6 +163,9 @@ export class InputManager {
   }
 
   onMouseUp(e) {
+    if (this.touchControls && this.touchControls.isTouchDevice()) {
+      return;
+    }
     if (e.button === 2) {
       if (this.isChargingHeavy) {
         this.actions.heavyAttack = true;
@@ -168,6 +175,9 @@ export class InputManager {
   }
 
   onMouseMove(e) {
+    if (this.touchControls && this.touchControls.isTouchDevice()) {
+      return;
+    }
     this.hasMovedMouseRecently = true;
     clearTimeout(this.mouseMoveTimeout);
     this.mouseMoveTimeout = setTimeout(() => {

@@ -159,6 +159,7 @@ export class DuelManager {
 
     // Hook local player projectile and melee hit callbacks
     this.localPlayer.setProjectilesList(this.projectiles);
+    this.localPlayer.setDuelOpponent(this.remotePlayer);
 
     this.localPlayer.onProjectileSpawned = (type, startPos, targetPos, speed, damage) => {
       this.net.sendEvent('PROJECTILE', {

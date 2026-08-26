@@ -347,7 +347,35 @@ export class Player {
     }
   }
 
+  setDuelOpponent(opp) {
+    this.duelOpponent = opp;
+  }
+
   aimTowardsTargetOrMouse(input, enemies, isMoving, worldMoveX, worldMoveZ) {
+    // 1. 1V1 DUEL MODE: Lock onto duel opponent if active
+    if (this.duelOpponent && !this.duelOpponent.isDead) {
+      const dx = this.duelOpponent.position.x - this.position.x;
+      const dz = this.duelOpponent.position.z - this.position.z;
+      const distSq = dx * dx + dz * dz;
+      if (distSq <= 26.0 * 26.0 && distSq > 0.04) {
+        const oppAngle = Math.atan2(dx, dz);
+        if (isMoving) {
+          const moveAngle = Math.atan2(worldMoveX, worldMoveZ);
+          const diff = Math.abs(MathUtils.angleDiff(oppAngle, moveAngle));
+          if (diff < Math.PI * 0.70 || distSq < 7.0 * 7.0) {
+            this.targetRotationY = oppAngle;
+            this.rotationY = this.targetRotationY;
+            return;
+          }
+        } else {
+          this.targetRotationY = oppAngle;
+          this.rotationY = this.targetRotationY;
+          return;
+        }
+      }
+    }
+
+    // 2. SOLO PvE MODE: Smart targeting towards enemies
     if (enemies && enemies.length > 0) {
       let bestTarget = null;
       let bestScore = -Infinity;
@@ -357,16 +385,24 @@ export class Player {
         const dx = e.position.x - this.position.x;
         const dz = e.position.z - this.position.z;
         const dist = Math.sqrt(dx * dx + dz * dz);
-        if (dist > 22.0) continue;
+        if (dist > 18.0) continue;
 
         const angleToEnemy = Math.atan2(dx, dz);
-        let score = (22.0 - dist) * 2.0;
-        const refAngle = isMoving ? Math.atan2(worldMoveX, worldMoveZ) : this.rotationY;
-        const angleDiff = Math.abs(MathUtils.angleDiff(angleToEnemy, refAngle));
-        score += (Math.PI - angleDiff) * 6.0;
+        let score = (18.0 - dist) * 2.0;
 
-        if (e.state === 'ATTACKING' || e.state === 'TELEGRAPH') score += 10.0;
-        if (e.type === 'BOSS_PROF') score += 15.0;
+        if (isMoving) {
+          const moveAngle = Math.atan2(worldMoveX, worldMoveZ);
+          const angleDiff = Math.abs(MathUtils.angleDiff(angleToEnemy, moveAngle));
+          // When moving, do not snap to enemies that are behind us unless in immediate melee range (<4.5m)
+          if (angleDiff > Math.PI * 0.65 && dist > 4.5) continue;
+          score += (Math.PI - angleDiff) * 8.0;
+        } else {
+          const angleDiff = Math.abs(MathUtils.angleDiff(angleToEnemy, this.rotationY));
+          score += (Math.PI - angleDiff) * 4.0;
+        }
+
+        if (e.state === 'ATTACKING' || e.state === 'TELEGRAPH') score += 8.0;
+        if (e.type === 'BOSS_PROF' || e.type?.includes('BOSS')) score += 12.0;
 
         if (score > bestScore) {
           bestScore = score;
@@ -383,13 +419,15 @@ export class Player {
       }
     }
 
+    // 3. Movement Direction
     if (isMoving) {
       this.targetRotationY = Math.atan2(worldMoveX, worldMoveZ);
       this.rotationY = this.targetRotationY;
       return;
     }
 
-    if (input.hasMovedMouseRecently && input.mouseWorld) {
+    // 4. Desktop Mouse Aiming
+    if (!input.touchControls?.isTouchDevice() && input.hasMovedMouseRecently && input.mouseWorld) {
       const dx = input.mouseWorld.x - this.position.x;
       const dz = input.mouseWorld.z - this.position.z;
       if (dx * dx + dz * dz > 0.3) {

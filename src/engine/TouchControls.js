@@ -260,11 +260,12 @@ export class TouchControls {
   }
 
   handleRightTouchStart(e) {
+    if (e.target && (e.target.classList.contains('touch-action-btn') || e.target.closest('.touch-action-btn'))) {
+      return;
+    }
+    e.preventDefault();
     for (let i = 0; i < e.changedTouches.length; i++) {
       const touch = e.changedTouches[i];
-      if (e.target && (e.target.classList.contains('touch-action-btn') || e.target.closest('.touch-action-btn'))) {
-        continue;
-      }
       if (this.cameraTouchId === null) {
         this.cameraTouchId = touch.identifier;
         this.cameraLastPos.x = touch.clientX;
@@ -275,6 +276,10 @@ export class TouchControls {
   }
 
   handleRightTouchMove(e) {
+    if (e.target && (e.target.classList.contains('touch-action-btn') || e.target.closest('.touch-action-btn'))) {
+      return;
+    }
+    e.preventDefault();
     if (this.cameraTouchId === null || !this.cameraController) return;
 
     for (let i = 0; i < e.changedTouches.length; i++) {
