@@ -40,7 +40,7 @@ export class SkeletonMinion {
     GlobalModelLoader.loadOBJWithMTL('assets/models/skeleton_minion.obj', 'assets/models/skeleton_minion.mtl').then((model) => {
       if (model && this.isAlive) {
         model.scale.set(1.15, 1.15, 1.15);
-        model.position.set(0, 0.12, 0);
+        model.position.set(0, 0.85, 0);
         this.modelContainer.add(model);
       }
     }).catch((err) => console.warn('Could not load skeleton minion model:', err));

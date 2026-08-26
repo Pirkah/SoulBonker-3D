@@ -32,6 +32,7 @@ export class Bonkling extends Enemy {
     GlobalModelLoader.loadOBJWithMTL('assets/models/bonkling.obj', 'assets/models/bonkling.mtl').then((model) => {
       if (model) {
         model.scale.set(1.15, 1.15, 1.15);
+        model.position.set(0, 0.78, 0);
         this.modelGroup.add(model);
       }
     });
@@ -89,6 +90,7 @@ export class HammerBrute extends Enemy {
     GlobalModelLoader.loadOBJWithMTL('assets/models/hammer_brute.obj', 'assets/models/hammer_brute.mtl').then((model) => {
       if (model) {
         model.scale.set(1.3, 1.3, 1.3);
+        model.position.set(0, 1.45, 0);
         this.modelGroup.add(model);
       }
     });
@@ -129,7 +131,7 @@ export class HammerBrute extends Enemy {
 }
 
 // ==========================================
-// 3. VOID MAGE (Ranged Caster)
+// 3. 🔮 VOID MAGE (Dark Ranged Projectiles)
 // ==========================================
 export class VoidMage extends Enemy {
   constructor(scene, x, z, projectilesList) {
@@ -138,15 +140,15 @@ export class VoidMage extends Enemy {
     this.projectilesList = projectilesList;
     this.maxHp = 80;
     this.hp = 80;
-    this.damage = 22;
-    this.moveSpeed = 4.2;
-    this.attackRange = 16.0;
-    this.preferredRange = 10.0;
+    this.damage = 18;
+    this.moveSpeed = 3.8;
+    this.attackRange = 14.0;
+    this.preferredRange = 8.0;
     this.telegraphDuration = 0.9;
     this.attackDuration = 0.3;
-    this.cooldownDuration = 1.8;
-    this.scoreValue = 180;
-    this.radius = 0.75;
+    this.cooldownDuration = 1.4;
+    this.scoreValue = 150;
+    this.radius = 0.8;
 
     this.buildMesh();
   }
@@ -158,6 +160,7 @@ export class VoidMage extends Enemy {
     GlobalModelLoader.loadOBJWithMTL('assets/models/void_mage.obj', 'assets/models/void_mage.mtl').then((model) => {
       if (model) {
         model.scale.set(1.0, 1.0, 1.0);
+        model.position.set(0, 0.95, 0);
         this.modelGroup.add(model);
       }
     });
@@ -227,6 +230,7 @@ export class ProfesseurAmphi extends Enemy {
     GlobalModelLoader.loadOBJWithMTL('assets/models/prof_boss.obj', 'assets/models/prof_boss.mtl').then((model) => {
       if (model) {
         model.scale.set(1.4, 1.4, 1.4);
+        model.position.set(0, 1.85, 0);
         this.modelGroup.add(model);
       }
     });
@@ -462,6 +466,7 @@ export class Gargoyle extends Enemy {
     GlobalModelLoader.loadOBJWithMTL('assets/models/gargoyle.obj', 'assets/models/gargoyle.mtl').then((model) => {
       if (model) {
         model.scale.set(1.15, 1.15, 1.15);
+        model.position.set(0, 0.85, 0);
         this.modelGroup.add(model);
       }
     });
@@ -526,6 +531,7 @@ export class ToxicGromp extends Enemy {
     GlobalModelLoader.loadOBJWithMTL('assets/models/toxic_gromp.obj', 'assets/models/toxic_gromp.mtl').then((model) => {
       if (model) {
         model.scale.set(1.2, 1.2, 1.2);
+        model.position.set(0, 0.75, 0);
         this.modelGroup.add(model);
       }
     });
@@ -587,6 +593,7 @@ export class CursedKnight extends Enemy {
     GlobalModelLoader.loadOBJWithMTL('assets/models/cursed_knight.obj', 'assets/models/cursed_knight.mtl').then((model) => {
       if (model) {
         model.scale.set(1.25, 1.25, 1.25);
+        model.position.set(0, 1.15, 0);
         this.modelGroup.add(model);
       }
     });
@@ -679,6 +686,7 @@ export class DemonLordBoss extends Enemy {
     GlobalModelLoader.loadOBJWithMTL('assets/models/demon_lord.obj', 'assets/models/demon_lord.mtl').then((model) => {
       if (model) {
         model.scale.set(1.6, 1.6, 1.6);
+        model.position.set(0, 2.35, 0);
         this.modelGroup.add(model);
       }
     });
@@ -804,6 +812,7 @@ export class LichKingBoss extends Enemy {
     GlobalModelLoader.loadOBJWithMTL('assets/models/lich_king.obj', 'assets/models/lich_king.mtl').then((model) => {
       if (model) {
         model.scale.set(1.5, 1.5, 1.5);
+        model.position.set(0, 2.05, 0);
         this.modelGroup.add(model);
       }
     });
@@ -916,6 +925,7 @@ export class TitanGolemBoss extends Enemy {
     GlobalModelLoader.loadOBJWithMTL('assets/models/titan_golem.obj', 'assets/models/titan_golem.mtl').then((model) => {
       if (model) {
         model.scale.set(1.8, 1.8, 1.8);
+        model.position.set(0, 3.10, 0);
         this.modelGroup.add(model);
       }
     });
