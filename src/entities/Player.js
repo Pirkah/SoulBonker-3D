@@ -249,12 +249,6 @@ export class Player {
     const worldMoveZ = input.moveVector.x * sinYaw + input.moveVector.z * cosYaw;
     const isMoving = (input.moveVector.x !== 0 || input.moveVector.z !== 0);
 
-    if (input.actions.lightAttack) {
-      if (this.state === 'ATTACK_LIGHT' || this.state === 'ATTACK_HEAVY') {
-        this.queuedLightAttack = true;
-      }
-    }
-
     switch (this.state) {
       case 'IDLE':
       case 'RUN':
@@ -307,8 +301,7 @@ export class Player {
       return;
     }
 
-    if (input.actions.lightAttack || this.queuedLightAttack) {
-      this.queuedLightAttack = false;
+    if (input.actions.lightAttack) {
       if (this.useStamina(15)) {
         this.aimTowardsTargetOrMouse(input, enemies, isMoving, worldMoveX, worldMoveZ);
         this.startLightAttack(audio);

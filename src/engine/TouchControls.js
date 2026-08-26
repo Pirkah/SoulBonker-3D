@@ -78,14 +78,22 @@ export class TouchControls {
     const btnDodge = document.getElementById('touch-btn-dodge');
     const btnLock = document.getElementById('touch-btn-lock');
 
+    this.lastAttackTapTime = 0;
+    this.lastDodgeTapTime = 0;
+    this.lastHeavyTapTime = 0;
+
     const triggerAttack = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
+      const now = performance.now();
+      if (now - this.lastAttackTapTime < 180) return;
+      this.lastAttackTapTime = now;
+
       this.actions.lightAttack = true;
       this.actions.startOrRestart = true;
       if (btnAttack) btnAttack.classList.add('touch-btn-active');
     };
     const endAttack = (e) => {
-      if (e) e.preventDefault();
+      if (e) { e.preventDefault(); e.stopPropagation(); }
       if (btnAttack) btnAttack.classList.remove('touch-btn-active');
     };
 
@@ -98,13 +106,17 @@ export class TouchControls {
 
     const triggerHeavy = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
+      const now = performance.now();
+      if (now - this.lastHeavyTapTime < 220) return;
+      this.lastHeavyTapTime = now;
+
       this.isChargingHeavy = true;
       this.actions.heavyAttack = true;
       this.actions.startOrRestart = true;
       if (btnHeavy) btnHeavy.classList.add('touch-btn-active');
     };
     const endHeavy = (e) => {
-      if (e) e.preventDefault();
+      if (e) { e.preventDefault(); e.stopPropagation(); }
       this.isChargingHeavy = false;
       if (btnHeavy) btnHeavy.classList.remove('touch-btn-active');
     };
@@ -118,12 +130,16 @@ export class TouchControls {
 
     const triggerDodge = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
+      const now = performance.now();
+      if (now - this.lastDodgeTapTime < 250) return;
+      this.lastDodgeTapTime = now;
+
       this.actions.dodge = true;
       this.actions.startOrRestart = true;
       if (btnDodge) btnDodge.classList.add('touch-btn-active');
     };
     const endDodge = (e) => {
-      if (e) e.preventDefault();
+      if (e) { e.preventDefault(); e.stopPropagation(); }
       if (btnDodge) btnDodge.classList.remove('touch-btn-active');
     };
 
@@ -140,7 +156,7 @@ export class TouchControls {
       if (btnLock) btnLock.classList.add('touch-btn-active');
     };
     const endLock = (e) => {
-      if (e) e.preventDefault();
+      if (e) { e.preventDefault(); e.stopPropagation(); }
       if (btnLock) btnLock.classList.remove('touch-btn-active');
     };
 

@@ -232,6 +232,16 @@ class Game {
     this.audio.resume();
     this.gameState = 'PLAYING';
 
+    // Restore solo UI elements
+    const waveHud = document.querySelector('.wave-hud');
+    if (waveHud) waveHud.style.display = 'flex';
+    const killCount = document.getElementById('kill-count');
+    if (killCount) killCount.style.display = 'block';
+    const pauseBtn = document.getElementById('pause-btn');
+    if (pauseBtn) pauseBtn.style.display = 'block';
+    const modBtn = document.getElementById('mod-hud-btn');
+    if (modBtn) modBtn.style.display = 'block';
+
     if (this.input && this.input.touchControls && this.input.touchControls.isTouchDevice()) {
       this.input.touchControls.show();
     }
@@ -255,11 +265,19 @@ class Game {
       this.input.touchControls.show();
     }
 
-    // Hide solo HUD elements
+    // Hide solo HUD elements in 1v1 mode (clean minimal battlefield HUD)
     const waveHud = document.querySelector('.wave-hud');
     if (waveHud) waveHud.style.display = 'none';
     const bossHud = document.getElementById('boss-hp-container');
     if (bossHud) bossHud.style.display = 'none';
+    const killCount = document.getElementById('kill-count');
+    if (killCount) killCount.style.display = 'none';
+    const pauseBtn = document.getElementById('pause-btn');
+    if (pauseBtn) pauseBtn.style.display = 'none';
+    const modBtn = document.getElementById('mod-hud-btn');
+    if (modBtn) modBtn.style.display = 'none';
+    const controlsHint = document.querySelector('.controls-hint');
+    if (controlsHint) controlsHint.style.display = 'none';
 
     if (document.activeElement && document.activeElement.blur) {
       document.activeElement.blur();
