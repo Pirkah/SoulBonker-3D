@@ -61,8 +61,9 @@ export class Weapon {
           model.scale.set(1.18, 1.18, 1.18);
           model.position.set(0, 0.28, 0);
         } else if (weaponType === 'SCYTHE') {
-          model.scale.set(1.25, 1.25, 1.25);
-          model.position.set(0, 0.15, 0.05);
+          model.scale.set(1.30, 1.30, 1.30);
+          model.position.set(0, 0, 0);
+          model.rotation.set(0, -Math.PI / 6, 0);
         } else if (weaponType === 'ANGEL_SWORD') {
           model.scale.set(1.15, 1.15, 1.15);
           model.position.set(0, 0.25, 0);
@@ -73,8 +74,8 @@ export class Weapon {
           model.scale.set(1.16, 1.16, 1.16);
           model.position.set(0, 0.22, 0);
         } else if (weaponType === 'NECRO_STAFF') {
-          model.scale.set(1.15, 1.15, 1.15);
-          model.position.set(0, 0.15, 0);
+          model.scale.set(1.20, 1.20, 1.20);
+          model.position.set(0, 0, 0);
         } else {
           model.scale.set(1.05, 1.05, 1.05);
           model.position.set(0, 0.2, 0);
@@ -83,12 +84,12 @@ export class Weapon {
       }
     }).catch(err => console.warn('Could not load weapon model:', err));
 
-    // Optional Glowing Rune Gem at the Tip (for staves & magic weapons)
-    if (weaponType === 'STAFF' || weaponType === 'NECRO_STAFF' || weaponType === 'CLUB') {
+    // Optional Glowing Rune Gem at the Tip (for Mage staff & Knight club)
+    if (weaponType === 'STAFF' || weaponType === 'CLUB') {
       const runeGeo = new THREE.OctahedronGeometry(0.14);
       this.runeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
       this.rune = new THREE.Mesh(runeGeo, this.runeMat);
-      this.rune.position.y = (weaponType === 'STAFF' || weaponType === 'NECRO_STAFF' ? 2.4 : 2.2);
+      this.rune.position.y = (weaponType === 'STAFF' ? 2.4 : 2.2);
       this.group.add(this.rune);
     }
 

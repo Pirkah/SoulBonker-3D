@@ -115,8 +115,65 @@ class Game {
       GlobalModelLoader.loadOBJWithMTL(cls.weaponModel, cls.weaponMtl);
     });
 
+    // Wave Manager Arena Theme Change Hook (Every 5 Waves)
+    this.waveManager.onArenaThemeChange = (newTheme, waveNumber) => {
+      if (this.gameMode === 'SOLO_WAVES') {
+        const displayName = this.waveManager.getThemeDisplayName(newTheme);
+        this.switchArenaTheme(newTheme, `🌀 PORTAIL : ${displayName}`, `Vague ${waveNumber} - Préparation au combat`);
+      }
+    };
+
     // Clock
     this.clock = new THREE.Clock();
+  }
+
+  switchArenaTheme(themeName, title = null, subtitle = null) {
+    if (this.arena.currentTheme === themeName && this.arena.themeMeshes.length > 0) return;
+
+    // Show stylish HTML transition screen (Loading & memory disposal)
+    let overlay = document.getElementById('arena-transition-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'arena-transition-overlay';
+      overlay.style.cssText = `
+        position: fixed; inset: 0; background: rgba(5, 6, 12, 0.94);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.30s ease;
+        backdrop-filter: blur(14px); color: #fff; font-family: system-ui, sans-serif;
+      `;
+      overlay.innerHTML = `
+        <div style="font-size: 3.2rem; margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(0,240,255,0.8));">🌀</div>
+        <div id="arena-trans-title" style="font-size: 1.7rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #00f0ff; text-shadow: 0 0 20px rgba(0,240,255,0.6); text-align: center;">PORTAIL VERS L'ARÈNE...</div>
+        <div id="arena-trans-sub" style="font-size: 0.95rem; color: #8899aa; margin-top: 8px; text-align: center;">Chargement des textures & géométries 3D...</div>
+        <div style="width: 220px; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 22px; overflow: hidden;">
+          <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #00f0ff, #ff0055); animation: loadingBar 0.8s infinite linear;"></div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    const titleEl = document.getElementById('arena-trans-title');
+    const subEl = document.getElementById('arena-trans-sub');
+    if (titleEl) titleEl.textContent = title || `PORTAIL : ${this.waveManager.getThemeDisplayName(themeName)}`;
+    if (subEl) subEl.textContent = subtitle || "Allègement mémoire & textures 3D...";
+
+    // Fade in
+    overlay.style.opacity = '1';
+    overlay.style.pointerEvents = 'auto';
+
+    setTimeout(() => {
+      // Rebuild arena with zero memory leaks
+      this.arena.setTheme(themeName, () => {
+        this.physics.setPillars(this.arena.pillars);
+        if (this.input) this.input.groundRaycastPlane = this.arena.groundRaycastPlane;
+
+        setTimeout(() => {
+          overlay.style.opacity = '0';
+          overlay.style.pointerEvents = 'none';
+          this.particles.spawnTextPopup(`✨ ${this.waveManager.getThemeDisplayName(themeName)}`, this.player.position, '#00f0ff', true);
+        }, 200);
+      });
+    }, 280);
   }
 
   selectCharacterClass(classKey, startImmediately = false) {
@@ -153,25 +210,18 @@ class Game {
     }
   }
 
-  startGame(classKey = null) {
-    if (this.gameState !== 'START') return;
-
+  startGame(classKey) {
     this.gameMode = 'SOLO_WAVES';
-    if (classKey) {
-      this.selectedClassKey = classKey;
-    }
-
-    const classData = CHARACTER_CLASSES[this.selectedClassKey] || CHARACTER_CLASSES.KNIGHT;
-    this.player.setClass(classData);
+    this.arena.setTheme('ACADEMIA');
+    const classData = CHARACTER_CLASSES[classKey] || CHARACTER_CLASSES.KNIGHT;
+    this.selectCharacterClass(classKey, false);
 
     const startModal = document.getElementById('start-modal');
     if (startModal) startModal.style.display = 'none';
 
-    // Show Solo Wave HUD
-    const waveHud = document.querySelector('.wave-hud');
-    if (waveHud) waveHud.style.display = 'flex';
+    const duelModal = document.getElementById('duel-lobby-modal');
+    if (duelModal) duelModal.style.display = 'none';
 
-    // Ensure focus is on document/canvas and flush initial click buffer
     if (document.activeElement && document.activeElement.blur) {
       document.activeElement.blur();
     }
@@ -212,6 +262,8 @@ class Game {
     this.audio.resume();
     this.gameState = 'PLAYING';
 
+    // Switch to Roman Colosseum Arena with transition
+    this.switchArenaTheme('ROMAN_COLOSSEUM', '🏛️ LE COLISÉE ROMAIN (1V1)', 'Arène des Gladiateurs & Sang Antique');
     this.duelManager.initDuel(this.player);
   }
 

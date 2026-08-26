@@ -15,6 +15,23 @@ export class WaveManager {
     this.totalKills = 0;
     this.enemies = [];
     this.projectiles = [];
+    this.onArenaThemeChange = null;
+  }
+
+  getThemeForWave(wave) {
+    if (wave <= 5) return 'ACADEMIA';
+    if (wave <= 10) return 'MAGMA_ABYSS';
+    if (wave <= 15) return 'FROZEN_CITADEL';
+    return 'TITAN_TEMPLE';
+  }
+
+  getThemeDisplayName(theme) {
+    if (theme === 'ACADEMIA') return "L'AMPHI ANTIQUE [VAGUES 1-5]";
+    if (theme === 'MAGMA_ABYSS') return "LE SANCTUAIRE MAGMATIQUE [VAGUES 6-10]";
+    if (theme === 'FROZEN_CITADEL') return "LA CITADELLE GELÉE DU NÉANT [VAGUES 11-15]";
+    if (theme === 'TITAN_TEMPLE') return "LE TEMPLE ANTIQUE DES TITANS [VAGUES 16-20+]";
+    if (theme === 'ROMAN_COLOSSEUM') return "LE COLISÉE ROMAIN (1V1)";
+    return "L'ARÈNE ANCIENNE";
   }
 
   startWave(waveNumber) {
@@ -22,6 +39,11 @@ export class WaveManager {
     this.isWaveActive = true;
     this.enemiesRemainingToSpawn = this.generateWaveComposition(waveNumber);
     this.spawnTimer = this.spawnInterval; // Immediate initial mob spawn!
+
+    const newTheme = this.getThemeForWave(waveNumber);
+    if (this.onArenaThemeChange) {
+      this.onArenaThemeChange(newTheme, waveNumber);
+    }
   }
 
   generateWaveComposition(wave) {
