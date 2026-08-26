@@ -51,29 +51,46 @@ export class Weapon {
 
       if (model) {
         if (weaponType === 'BOW') {
-          model.scale.set(1.2, 1.2, 1.2);
-          model.position.set(0, 0.4, 0);
+          model.scale.set(1.25, 1.25, 1.25);
+          model.position.set(0, 0.35, 0);
           model.rotation.set(0, Math.PI / 2, 0);
         } else if (weaponType === 'STAFF') {
-          model.scale.set(1.1, 1.1, 1.1);
-          model.position.set(0, 0.1, 0);
-        } else if (weaponType === 'CHAINSWORD') {
           model.scale.set(1.15, 1.15, 1.15);
-          model.position.set(0, 0.3, 0);
+          model.position.set(0, 0.15, 0);
+        } else if (weaponType === 'CHAINSWORD') {
+          model.scale.set(1.18, 1.18, 1.18);
+          model.position.set(0, 0.28, 0);
+        } else if (weaponType === 'SCYTHE') {
+          model.scale.set(1.25, 1.25, 1.25);
+          model.position.set(0, 0.15, 0.05);
+        } else if (weaponType === 'ANGEL_SWORD') {
+          model.scale.set(1.15, 1.15, 1.15);
+          model.position.set(0, 0.25, 0);
+        } else if (weaponType === 'DAGGER') {
+          model.scale.set(1.12, 1.12, 1.12);
+          model.position.set(0, 0.15, 0);
+        } else if (weaponType === 'CHOPPA') {
+          model.scale.set(1.16, 1.16, 1.16);
+          model.position.set(0, 0.22, 0);
+        } else if (weaponType === 'NECRO_STAFF') {
+          model.scale.set(1.15, 1.15, 1.15);
+          model.position.set(0, 0.15, 0);
         } else {
-          model.scale.set(1.0, 1.0, 1.0);
+          model.scale.set(1.05, 1.05, 1.05);
           model.position.set(0, 0.2, 0);
         }
         this.modelGroup.add(model);
       }
     }).catch(err => console.warn('Could not load weapon model:', err));
 
-    // Glowing Rune Gem / Energy Core at the Tip
-    const runeGeo = new THREE.OctahedronGeometry(0.16);
-    this.runeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-    this.rune = new THREE.Mesh(runeGeo, this.runeMat);
-    this.rune.position.y = (weaponType === 'STAFF' ? 2.4 : 2.2);
-    this.group.add(this.rune);
+    // Optional Glowing Rune Gem at the Tip (for staves & magic weapons)
+    if (weaponType === 'STAFF' || weaponType === 'NECRO_STAFF' || weaponType === 'CLUB') {
+      const runeGeo = new THREE.OctahedronGeometry(0.14);
+      this.runeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+      this.rune = new THREE.Mesh(runeGeo, this.runeMat);
+      this.rune.position.y = (weaponType === 'STAFF' || weaponType === 'NECRO_STAFF' ? 2.4 : 2.2);
+      this.group.add(this.rune);
+    }
 
     // Initial position & orientation inside the hand
     this.group.position.set(0, 0, 0);

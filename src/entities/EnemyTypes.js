@@ -1,8 +1,9 @@
 import * as THREE from '../../libs/three.module.js';
 import { Enemy } from './Enemy.js';
-import { Projectile, ExamPaperProjectile, ThrownDoorProjectile } from './Projectile.js';
+import { Projectile, ExamPaperProjectile, ThrownDoorProjectile, ToxicPuddleProjectile, DemonMeteorProjectile, DeathRayProjectile, BoulderProjectile } from './Projectile.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { GlobalModelLoader } from '../engine/ModelLoader.js';
+import { SkeletonMinion } from './SkeletonMinion.js';
 
 // ==========================================
 // 1. BONKLING (Fast Goblin Swarmer)
@@ -440,6 +441,568 @@ export class ProfesseurAmphi extends Enemy {
       this.laserEyeMat.color.setHex(0xff0000);
       this.floorRuneMat.color.setHex(0xff0000);
       particles.spawnTextPopup("🔥 'VOUS IREZ EN RATTRAPAGE !' 🔥", this.position, '#ff0033', true);
+    }
+  }
+}
+
+// ==========================================
+// 5. 🦇 GARGOYLE (Flying Aerial Dive Bomber)
+// ==========================================
+export class Gargoyle extends Enemy {
+  constructor(scene, x, z) {
+    super(scene, x, z);
+    this.type = 'GARGOYLE';
+    this.maxHp = 95;
+    this.hp = 95;
+    this.damage = 18;
+    this.moveSpeed = 7.5;
+    this.attackRange = 3.5;
+    this.telegraphDuration = 0.55;
+    this.attackDuration = 0.35;
+    this.scoreValue = 140;
+    this.radius = 0.9;
+
+    this.buildMesh();
+  }
+
+  buildMesh() {
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
+
+    GlobalModelLoader.loadOBJWithMTL('assets/models/gargoyle.obj', 'assets/models/gargoyle.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.15, 1.15, 1.15);
+        this.modelGroup.add(model);
+      }
+    });
+  }
+
+  animateWalk(dt) {
+    this.position.y = 1.8 + Math.sin(this.stateTimer * 8) * 0.35;
+    this.modelGroup.rotation.z = Math.sin(this.stateTimer * 8) * 0.15;
+    this.modelGroup.rotation.x = 0.25;
+  }
+
+  animateTelegraph(progress) {
+    this.position.y = 2.2 + progress * 0.5;
+    this.modelGroup.rotation.x = -0.3;
+  }
+
+  animateAttack(progress) {
+    this.position.y = Math.max(0.2, 2.7 - progress * 2.5);
+    this.modelGroup.rotation.x = 0.6;
+  }
+
+  performAttack(player, audio, particles) {
+    audio.playSwing(true);
+    particles.spawnHitSparks(this.position, 0, 0, 10);
+
+    const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+    if (distSq <= (this.attackRange + 1.2) ** 2) {
+      if (!player.isInvulnerable) {
+        player.takeDamage(this.damage, audio, particles);
+      }
+    }
+  }
+}
+
+// ==========================================
+// 6. 🐸 TOXIC GROMP (Plague Acid Spitter)
+// ==========================================
+export class ToxicGromp extends Enemy {
+  constructor(scene, x, z, projectilesList) {
+    super(scene, x, z);
+    this.type = 'TOXIC_GROMP';
+    this.projectilesList = projectilesList;
+    this.maxHp = 140;
+    this.hp = 140;
+    this.damage = 20;
+    this.moveSpeed = 4.0;
+    this.attackRange = 15.0;
+    this.preferredRange = 9.0;
+    this.telegraphDuration = 0.85;
+    this.attackDuration = 0.35;
+    this.cooldownDuration = 1.6;
+    this.scoreValue = 200;
+    this.radius = 1.1;
+
+    this.buildMesh();
+  }
+
+  buildMesh() {
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
+
+    GlobalModelLoader.loadOBJWithMTL('assets/models/toxic_gromp.obj', 'assets/models/toxic_gromp.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.2, 1.2, 1.2);
+        this.modelGroup.add(model);
+      }
+    });
+  }
+
+  animateWalk(dt) {
+    const hop = Math.abs(Math.sin(this.stateTimer * 6));
+    this.position.y = hop * 0.45;
+    this.modelGroup.scale.set(1.0 + hop * 0.1, 1.0 - hop * 0.1, 1.0 + hop * 0.1);
+  }
+
+  animateTelegraph(progress) {
+    this.modelGroup.scale.set(1.0 + progress * 0.25, 1.0 + progress * 0.25, 1.0 + progress * 0.25);
+  }
+
+  animateAttack(progress) {
+    this.modelGroup.scale.set(1.0, 1.0, 1.0);
+  }
+
+  performAttack(player, audio, particles) {
+    audio.playPlayerHurt();
+    particles.spawnHitSparks(this.position, 0, 0, 12);
+    particles.spawnTextPopup("🧪 CRACHAT TOXIQUE !", this.position, '#33ff00', true);
+
+    if (this.projectilesList) {
+      const acid = new ToxicPuddleProjectile(this.scene, this.position, player.position, 14, this.damage);
+      this.projectilesList.push(acid);
+    }
+  }
+}
+
+// ==========================================
+// 7. 🛡️ CURSED KNIGHT (Skeleton Shield Bearer)
+// ==========================================
+export class CursedKnight extends Enemy {
+  constructor(scene, x, z) {
+    super(scene, x, z);
+    this.type = 'CURSED_KNIGHT';
+    this.maxHp = 190;
+    this.hp = 190;
+    this.damage = 26;
+    this.moveSpeed = 4.8;
+    this.attackRange = 2.8;
+    this.telegraphDuration = 0.75;
+    this.attackDuration = 0.4;
+    this.cooldownDuration = 0.8;
+    this.scoreValue = 220;
+    this.radius = 1.0;
+    this.isShieldStaggered = false;
+    this.staggerTimer = 0;
+
+    this.buildMesh();
+  }
+
+  buildMesh() {
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
+
+    GlobalModelLoader.loadOBJWithMTL('assets/models/cursed_knight.obj', 'assets/models/cursed_knight.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.25, 1.25, 1.25);
+        this.modelGroup.add(model);
+      }
+    });
+  }
+
+  takeDamage(amount, dirX = 0, dirZ = 0, knockForce = 10, isCrit = false) {
+    if (this.isDead) return;
+
+    // Check if attack hit front of shield
+    const attackAngle = Math.atan2(-dirX, -dirZ);
+    const angleDiff = Math.abs(MathUtils.angleDiff(attackAngle, this.rotationY));
+
+    // Shield blocks frontal attacks unless heavy attack / crit breaks guard!
+    if (!this.isShieldStaggered && angleDiff < Math.PI * 0.45 && !isCrit && knockForce < 20) {
+      this.stateTimer = 0;
+      return; // 100% BLOCKED
+    }
+
+    if (isCrit || knockForce >= 20) {
+      this.isShieldStaggered = true;
+      this.staggerTimer = 1.8;
+    }
+
+    super.takeDamage(amount, dirX, dirZ, knockForce, isCrit);
+  }
+
+  update(dt, player, audio, particles) {
+    if (this.isShieldStaggered) {
+      this.staggerTimer -= dt;
+      if (this.staggerTimer <= 0) {
+        this.isShieldStaggered = false;
+      }
+    }
+    super.update(dt, player, audio, particles);
+  }
+
+  animateWalk(dt) {
+    this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 6)) * 0.1;
+  }
+
+  animateTelegraph(progress) {
+    this.modelGroup.rotation.y = this.rotationY + progress * 0.4;
+  }
+
+  animateAttack(progress) {
+    this.modelGroup.rotation.y = this.rotationY - progress * 0.6;
+  }
+
+  performAttack(player, audio, particles) {
+    audio.playSwing(true);
+    particles.spawnHitSparks(this.position, 0, 0, 10);
+
+    const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+    if (distSq <= (this.attackRange + 0.8) ** 2) {
+      if (!player.isInvulnerable) {
+        player.takeDamage(this.damage, audio, particles);
+      }
+    }
+  }
+}
+
+// ==========================================
+// 8. 😈 SEIGNEUR DÉMON MALAKOR (Boss Vague 10)
+// ==========================================
+export class DemonLordBoss extends Enemy {
+  constructor(scene, x, z, projectilesList) {
+    super(scene, x, z);
+    this.type = 'BOSS_DEMON';
+    this.projectilesList = projectilesList;
+    this.maxHp = 2800;
+    this.hp = 2800;
+    this.damage = 48;
+    this.moveSpeed = 4.4;
+    this.attackRange = 6.0;
+    this.telegraphDuration = 1.1;
+    this.attackDuration = 0.55;
+    this.cooldownDuration = 0.7;
+    this.scoreValue = 5000;
+    this.radius = 2.6;
+    this.isEnraged = false;
+    this.attackPatternIndex = 0;
+
+    this.buildMesh();
+  }
+
+  buildMesh() {
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
+
+    GlobalModelLoader.loadOBJWithMTL('assets/models/demon_lord.obj', 'assets/models/demon_lord.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.6, 1.6, 1.6);
+        this.modelGroup.add(model);
+      }
+    });
+
+    this.telegraphMesh.geometry.dispose();
+    this.telegraphMesh.geometry = new THREE.RingGeometry(0.4, 9.5, 36);
+  }
+
+  animateWalk(dt) {
+    this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 5)) * 0.2;
+  }
+
+  animateTelegraph(progress) {
+    this.modelGroup.rotation.x = -progress * 0.45;
+  }
+
+  animateAttack(progress) {
+    this.modelGroup.rotation.x = progress * 0.8 - 0.3;
+  }
+
+  performAttack(player, audio, particles) {
+    this.attackPatternIndex = (this.attackPatternIndex + 1) % 4;
+
+    // Pattern 0: Meteor Shower
+    if (this.attackPatternIndex === 0) {
+      audio.playMagicCast(true);
+      particles.spawnTextPopup("☄️ PLUIE DE MÉTÉORES !", this.position, '#ff3300', true);
+
+      if (this.projectilesList) {
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => {
+            if (this.projectilesList) {
+              const targetOffset = {
+                x: player.position.x + (Math.random() * 6 - 3),
+                y: 0,
+                z: player.position.z + (Math.random() * 6 - 3)
+              };
+              const meteor = new DemonMeteorProjectile(this.scene, targetOffset, 45);
+              this.projectilesList.push(meteor);
+            }
+          }, i * 350);
+        }
+      }
+    }
+    // Pattern 1: Magma Ground Slam
+    else if (this.attackPatternIndex === 1) {
+      audio.playGroundSlam();
+      particles.spawnShockwave(this.position, 12.0, 0xff2200, 0.8);
+      particles.spawnTextPopup("🔥 SEISME DE MAGMA !", this.position, '#ff2200', true);
+
+      const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+      if (distSq <= 8.5 * 8.5 && !player.isInvulnerable) {
+        player.takeDamage(this.damage * 1.2, audio, particles);
+        const dx = player.position.x - this.position.x;
+        const dz = player.position.z - this.position.z;
+        const len = Math.sqrt(dx * dx + dz * dz) || 1;
+        player.velocity.x = (dx / len) * 25;
+        player.velocity.z = (dz / len) * 25;
+      }
+    }
+    // Pattern 2: Hellfire Cleaver Slash
+    else if (this.attackPatternIndex === 2) {
+      audio.playSwing(true);
+      particles.spawnHitSparks(this.position, 0, 0, 18, true);
+      particles.spawnTextPopup("⚔️ TRANCHANT INFERNAL !", this.position, '#ff6600', true);
+
+      const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+      if (distSq <= 6.5 * 6.5 && !player.isInvulnerable) {
+        player.takeDamage(this.damage, audio, particles);
+      }
+    }
+    // Pattern 3: Infernal Roar
+    else {
+      audio.playPlayerHurt();
+      particles.spawnShockwave(this.position, 9.0, 0xff0044, 0.6);
+      particles.spawnTextPopup("📢 RUGISSEMENT D'ABYSSES !", this.position, '#ff0044', true);
+
+      const dx = player.position.x - this.position.x;
+      const dz = player.position.z - this.position.z;
+      const len = Math.sqrt(dx * dx + dz * dz) || 1;
+      player.velocity.x = (dx / len) * 22;
+      player.velocity.z = (dz / len) * 22;
+    }
+
+    if (this.hp < this.maxHp * 0.5 && !this.isEnraged) {
+      this.isEnraged = true;
+      this.moveSpeed = 5.8;
+      this.telegraphDuration = 0.75;
+      particles.spawnTextPopup("🔥 MALAKOR ENTRE EN ENRAGE ! 🔥", this.position, '#ff0000', true);
+    }
+  }
+}
+
+// ==========================================
+// 9. 💀 ROI LICHE MORTIS (Boss Vague 15)
+// ==========================================
+export class LichKingBoss extends Enemy {
+  constructor(scene, x, z, projectilesList) {
+    super(scene, x, z);
+    this.type = 'BOSS_LICH';
+    this.projectilesList = projectilesList;
+    this.maxHp = 3400;
+    this.hp = 3400;
+    this.damage = 44;
+    this.moveSpeed = 4.0;
+    this.attackRange = 16.0;
+    this.preferredRange = 10.0;
+    this.telegraphDuration = 1.0;
+    this.attackDuration = 0.5;
+    this.cooldownDuration = 0.8;
+    this.scoreValue = 7500;
+    this.radius = 2.4;
+    this.isEnraged = false;
+    this.attackPatternIndex = 0;
+
+    this.buildMesh();
+  }
+
+  buildMesh() {
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
+
+    GlobalModelLoader.loadOBJWithMTL('assets/models/lich_king.obj', 'assets/models/lich_king.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.5, 1.5, 1.5);
+        this.modelGroup.add(model);
+      }
+    });
+
+    this.telegraphMesh.geometry.dispose();
+    this.telegraphMesh.geometry = new THREE.RingGeometry(0.4, 9.0, 36);
+  }
+
+  animateWalk(dt) {
+    this.position.y = 0.5 + Math.sin(this.stateTimer * 4) * 0.3;
+    this.modelGroup.rotation.y += dt * 1.5;
+  }
+
+  animateTelegraph(progress) {
+    this.position.y = 0.8 + progress * 0.4;
+  }
+
+  animateAttack(progress) {
+    this.position.y = 0.6;
+  }
+
+  performAttack(player, audio, particles) {
+    this.attackPatternIndex = (this.attackPatternIndex + 1) % 4;
+
+    // Pattern 0: Death Ray Beam
+    if (this.attackPatternIndex === 0) {
+      audio.playMagicCast(true);
+      particles.spawnTextPopup("⚡ RAYON DE MORT SPECTRALE !", this.position, '#00f0ff', true);
+
+      if (this.projectilesList) {
+        const beam = new DeathRayProjectile(this.scene, this.position, player.position, 26, 40);
+        this.projectilesList.push(beam);
+      }
+    }
+    // Pattern 1: Soul Blizzard Vortex
+    else if (this.attackPatternIndex === 1) {
+      audio.playMagicCast(false);
+      particles.spawnShockwave(player.position, 8.0, 0x00ffff, 0.7);
+      particles.spawnTextPopup("❄️ BLIZZARD D'ÂMES GELÉES !", player.position, '#00ffff', true);
+
+      const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+      if (distSq <= 10.0 * 10.0 && !player.isInvulnerable) {
+        player.takeDamage(this.damage, audio, particles);
+      }
+    }
+    // Pattern 2: Summon Undead Minions
+    else if (this.attackPatternIndex === 2) {
+      audio.playMagicCast(true);
+      particles.spawnShockwave(this.position, 7.0, 0x00ff66, 0.6);
+      particles.spawnTextPopup("🧟 ARMÉE DES MORTS !", this.position, '#00ff66', true);
+
+      // Spawn Bonklings / Skeletons around boss
+      for (let i = 0; i < 3; i++) {
+        const angle = (i / 3) * Math.PI * 2;
+        const b = new Bonkling(this.scene, this.position.x + Math.sin(angle) * 3, this.position.z + Math.cos(angle) * 3);
+        if (this.scene) {
+          // Add to enemy list if available through event or hook
+        }
+      }
+    }
+    // Pattern 3: Soul Nova 360
+    else {
+      audio.playGroundSlam();
+      particles.spawnShockwave(this.position, 11.0, 0x9900ff, 0.8);
+      particles.spawnTextPopup("🔮 SUPERNOVA DES ÂMES !", this.position, '#9900ff', true);
+
+      const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+      if (distSq <= 8.5 * 8.5 && !player.isInvulnerable) {
+        player.takeDamage(this.damage * 1.15, audio, particles);
+      }
+    }
+
+    if (this.hp < this.maxHp * 0.5 && !this.isEnraged) {
+      this.isEnraged = true;
+      this.moveSpeed = 5.2;
+      this.telegraphDuration = 0.7;
+      particles.spawnTextPopup("💀 MORTIS DÉCHAÎNE LE NÉANT ! 💀", this.position, '#00e5ff', true);
+    }
+  }
+}
+
+// ==========================================
+// 10. 🗿 TITAN ANCIEN DE PIERRE (Boss Vague 20)
+// ==========================================
+export class TitanGolemBoss extends Enemy {
+  constructor(scene, x, z, projectilesList) {
+    super(scene, x, z);
+    this.type = 'BOSS_TITAN';
+    this.projectilesList = projectilesList;
+    this.maxHp = 4500;
+    this.hp = 4500;
+    this.damage = 55;
+    this.moveSpeed = 3.6;
+    this.attackRange = 7.0;
+    this.telegraphDuration = 1.3;
+    this.attackDuration = 0.6;
+    this.cooldownDuration = 0.9;
+    this.scoreValue = 10000;
+    this.radius = 3.2;
+    this.isEnraged = false;
+    this.attackPatternIndex = 0;
+
+    this.buildMesh();
+  }
+
+  buildMesh() {
+    this.modelGroup = new THREE.Group();
+    this.group.add(this.modelGroup);
+
+    GlobalModelLoader.loadOBJWithMTL('assets/models/titan_golem.obj', 'assets/models/titan_golem.mtl').then((model) => {
+      if (model) {
+        model.scale.set(1.8, 1.8, 1.8);
+        this.modelGroup.add(model);
+      }
+    });
+
+    this.telegraphMesh.geometry.dispose();
+    this.telegraphMesh.geometry = new THREE.RingGeometry(0.5, 12.0, 40);
+  }
+
+  animateWalk(dt) {
+    this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 4)) * 0.25;
+  }
+
+  animateTelegraph(progress) {
+    this.modelGroup.rotation.x = -progress * 0.5;
+  }
+
+  animateAttack(progress) {
+    this.modelGroup.rotation.x = progress * 0.9 - 0.3;
+  }
+
+  performAttack(player, audio, particles) {
+    this.attackPatternIndex = (this.attackPatternIndex + 1) % 4;
+
+    // Pattern 0: Cataclysmic Earth Stomp
+    if (this.attackPatternIndex === 0) {
+      audio.playGroundSlam();
+      particles.spawnShockwave(this.position, 14.0, 0xffd700, 0.9);
+      particles.spawnTextPopup("💥 SÉISME CATACLYSMIQUE !", this.position, '#ffd700', true);
+
+      const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+      if (distSq <= 10.5 * 10.5 && !player.isInvulnerable) {
+        player.takeDamage(this.damage * 1.3, audio, particles);
+        const dx = player.position.x - this.position.x;
+        const dz = player.position.z - this.position.z;
+        const len = Math.sqrt(dx * dx + dz * dz) || 1;
+        player.velocity.x = (dx / len) * 30;
+        player.velocity.z = (dz / len) * 30;
+      }
+    }
+    // Pattern 1: Rolling Boulder Toss
+    else if (this.attackPatternIndex === 1) {
+      audio.playSwing(true);
+      particles.spawnTextPopup("🪨 LANCER DE MONOLITHE !", this.position, '#aaaaaa', true);
+
+      if (this.projectilesList) {
+        const boulder = new BoulderProjectile(this.scene, this.position, player.position, 16, 45);
+        this.projectilesList.push(boulder);
+      }
+    }
+    // Pattern 2: Ancient Eye Laser Beam
+    else if (this.attackPatternIndex === 2) {
+      audio.playMagicCast(true);
+      particles.spawnShockwave(this.position, 10.0, 0xffaa00, 0.7);
+      particles.spawnTextPopup("☀️ RAYON OCULAIRE ANCIEN !", this.position, '#ffaa00', true);
+
+      if (this.projectilesList) {
+        const laser = new DeathRayProjectile(this.scene, this.position, player.position, 28, 50);
+        this.projectilesList.push(laser);
+      }
+    }
+    // Pattern 3: Rock Fists Smash
+    else {
+      audio.playGroundSlam();
+      particles.spawnHitSparks(this.position, 0, 0, 20, true);
+      particles.spawnTextPopup("🔨 DOUBLE FRACAS DE PIERRE !", this.position, '#ffffff', true);
+
+      const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+      if (distSq <= 7.5 * 7.5 && !player.isInvulnerable) {
+        player.takeDamage(this.damage, audio, particles);
+      }
+    }
+
+    if (this.hp < this.maxHp * 0.5 && !this.isEnraged) {
+      this.isEnraged = true;
+      this.moveSpeed = 4.8;
+      this.telegraphDuration = 0.9;
+      particles.spawnTextPopup("🗿 ÉVEIL TOTAL DU TITAN ! 🗿", this.position, '#ffd700', true);
     }
   }
 }

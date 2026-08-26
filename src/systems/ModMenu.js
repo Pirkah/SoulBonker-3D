@@ -1,4 +1,4 @@
-import { Bonkling, HammerBrute, VoidMage, ProfesseurAmphi } from '../entities/EnemyTypes.js';
+import { Bonkling, HammerBrute, VoidMage, ProfesseurAmphi, Gargoyle, ToxicGromp, CursedKnight, DemonLordBoss, LichKingBoss, TitanGolemBoss } from '../entities/EnemyTypes.js';
 import { CHARACTER_CLASSES } from './ClassManager.js';
 
 export class ModMenu {
@@ -65,11 +65,17 @@ export class ModMenu {
         <div class="mod-section">
           <div class="mod-section-title">👾 SPAWNER DE MONSTRES & BOSS</div>
           <div class="mod-grid">
-            <button class="mod-btn spawn-btn boss" id="spawn-prof-btn">🎓 Spawner LE PROFESSEUR D'AMPHI (Boss)</button>
-            <button class="mod-btn spawn-btn" id="spawn-brute-btn">🔨 Spawner Brute au Marteau</button>
-            <button class="mod-btn spawn-btn" id="spawn-mage-btn">🧙 Spawner Mage du Vide</button>
-            <button class="mod-btn spawn-btn" id="spawn-bonkling-btn">👺 Spawner 1 Bonkling</button>
-            <button class="mod-btn spawn-btn horde" id="spawn-horde-btn">🔥 Spawner HORDE (15 Mobs)</button>
+            <button class="mod-btn spawn-btn boss" id="spawn-prof-btn">🎓 Boss : Professeur d'Amphi</button>
+            <button class="mod-btn spawn-btn boss" id="spawn-demon-btn">😈 Boss : Démon Malakor</button>
+            <button class="mod-btn spawn-btn boss" id="spawn-lich-btn">💀 Boss : Roi Liche Mortis</button>
+            <button class="mod-btn spawn-btn boss" id="spawn-titan-btn">🗿 Boss : Titan de Pierre</button>
+            <button class="mod-btn spawn-btn" id="spawn-gargoyle-btn">🦇 Gargouille Ailée</button>
+            <button class="mod-btn spawn-btn" id="spawn-gromp-btn">🐸 Gromp Vénéneux</button>
+            <button class="mod-btn spawn-btn" id="spawn-knight-mob-btn">🛡️ Chevalier Maudit</button>
+            <button class="mod-btn spawn-btn" id="spawn-brute-btn">🔨 Brute au Marteau</button>
+            <button class="mod-btn spawn-btn" id="spawn-mage-btn">🧙 Mage du Vide</button>
+            <button class="mod-btn spawn-btn" id="spawn-bonkling-btn">👺 1 Bonkling</button>
+            <button class="mod-btn spawn-btn horde" id="spawn-horde-btn">🔥 HORDE (15 Mobs)</button>
             <button class="mod-btn kill-btn" id="kill-all-btn">🧹 BONK TOUT LE MONDE (Kill All)</button>
           </div>
         </div>
@@ -78,10 +84,12 @@ export class ModMenu {
         <div class="mod-section">
           <div class="mod-section-title">🌊 GESTION DES VAGUES & CARTES</div>
           <div class="mod-grid">
-            <button class="mod-btn" id="clear-wave-btn">⏭️ Terminer la Vague Instantanément</button>
-            <button class="mod-btn" id="open-upgrades-btn">🃏 Ouvrir le Deck d'Améliorations</button>
-            <button class="mod-btn" id="wave-5-btn">🎓 Sauter à la Vague 5 (Boss Prof)</button>
-            <button class="mod-btn" id="wave-10-btn">💀 Sauter à la Vague 10</button>
+            <button class="mod-btn" id="clear-wave-btn">⏭️ Terminer la Vague</button>
+            <button class="mod-btn" id="open-upgrades-btn">🃏 Ouvrir Deck d'Améliorations</button>
+            <button class="mod-btn" id="wave-5-btn">🎓 Sauter Vague 5 (Boss Prof)</button>
+            <button class="mod-btn" id="wave-10-btn">😈 Sauter Vague 10 (Boss Démon)</button>
+            <button class="mod-btn" id="wave-15-btn">💀 Sauter Vague 15 (Boss Liche)</button>
+            <button class="mod-btn" id="wave-20-btn">🗿 Sauter Vague 20 (Boss Titan)</button>
           </div>
         </div>
 
@@ -188,12 +196,48 @@ export class ModMenu {
       this.game.player.weapon.setScale(this.weaponScale);
     };
 
-    // Spawners
+    // Spawners - Bosses & Mobs
     document.getElementById('spawn-prof-btn').onclick = () => {
       const boss = new ProfesseurAmphi(this.game.scene, 0, -10, this.game.waveManager.projectiles);
       this.game.waveManager.enemies.push(boss);
       this.game.particles.spawnTextPopup("🎓 LE PROFESSEUR D'AMPHI EST ARRIVÉ !", boss.position, '#ff0033', true);
       this.game.audio.playGroundSlam();
+    };
+
+    document.getElementById('spawn-demon-btn').onclick = () => {
+      const boss = new DemonLordBoss(this.game.scene, 0, -10, this.game.waveManager.projectiles);
+      this.game.waveManager.enemies.push(boss);
+      this.game.particles.spawnTextPopup("😈 MALAKOR SEIGNEUR DÉMON EST ARRIVÉ !", boss.position, '#ff2200', true);
+      this.game.audio.playGroundSlam();
+    };
+
+    document.getElementById('spawn-lich-btn').onclick = () => {
+      const boss = new LichKingBoss(this.game.scene, 0, -10, this.game.waveManager.projectiles);
+      this.game.waveManager.enemies.push(boss);
+      this.game.particles.spawnTextPopup("💀 MORTIS ROI LICHE EST ARRIVÉ !", boss.position, '#00e5ff', true);
+      this.game.audio.playMagicCast(true);
+    };
+
+    document.getElementById('spawn-titan-btn').onclick = () => {
+      const boss = new TitanGolemBoss(this.game.scene, 0, -10, this.game.waveManager.projectiles);
+      this.game.waveManager.enemies.push(boss);
+      this.game.particles.spawnTextPopup("🗿 LE TITAN ANCIEN S'ÉVEILLE !", boss.position, '#ffd700', true);
+      this.game.audio.playGroundSlam();
+    };
+
+    document.getElementById('spawn-gargoyle-btn').onclick = () => {
+      const m = new Gargoyle(this.game.scene, Math.random() * 20 - 10, Math.random() * 20 - 10);
+      this.game.waveManager.enemies.push(m);
+    };
+
+    document.getElementById('spawn-gromp-btn').onclick = () => {
+      const m = new ToxicGromp(this.game.scene, Math.random() * 20 - 10, Math.random() * 20 - 10, this.game.waveManager.projectiles);
+      this.game.waveManager.enemies.push(m);
+    };
+
+    document.getElementById('spawn-knight-mob-btn').onclick = () => {
+      const m = new CursedKnight(this.game.scene, Math.random() * 20 - 10, Math.random() * 20 - 10);
+      this.game.waveManager.enemies.push(m);
     };
 
     document.getElementById('spawn-brute-btn').onclick = () => {
@@ -255,6 +299,20 @@ export class ModMenu {
       this.game.waveManager.enemies.forEach(e => e.destroy());
       this.game.waveManager.enemies = [];
       this.game.waveManager.startWave(10);
+      this.toggle(false);
+    };
+
+    document.getElementById('wave-15-btn').onclick = () => {
+      this.game.waveManager.enemies.forEach(e => e.destroy());
+      this.game.waveManager.enemies = [];
+      this.game.waveManager.startWave(15);
+      this.toggle(false);
+    };
+
+    document.getElementById('wave-20-btn').onclick = () => {
+      this.game.waveManager.enemies.forEach(e => e.destroy());
+      this.game.waveManager.enemies = [];
+      this.game.waveManager.startWave(20);
       this.toggle(false);
     };
 

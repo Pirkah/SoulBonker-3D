@@ -55,12 +55,30 @@ export class UIManager {
     this.killCountEl.textContent = `💀 ${waveManager.totalKills}`;
 
     // 5. Boss Bar
-    const boss = waveManager.enemies.find(e => (e.type === 'BOSS_PROF' || e.type === 'BOSS_GOLEM') && !e.isDead);
+    const boss = waveManager.enemies.find(e => (
+      e.type === 'BOSS_PROF' ||
+      e.type === 'BOSS_DEMON' ||
+      e.type === 'BOSS_LICH' ||
+      e.type === 'BOSS_TITAN' ||
+      e.type === 'BOSS_GOLEM'
+    ) && !e.isDead);
+
     if (boss) {
       this.bossHpContainer.style.display = 'block';
       const bossPercent = Math.max(0, (boss.hp / boss.maxHp) * 100);
       this.bossHpFill.style.width = `${bossPercent}%`;
-      this.bossNameEl.textContent = `🎓 PROFESSEUR D'AMPHI : DOYEN DU RATTRAPAGE [VAGUE ${waveManager.currentWave}]`;
+
+      if (boss.type === 'BOSS_PROF') {
+        this.bossNameEl.textContent = `🎓 PROFESSEUR D'AMPHI : DOYEN DU RATTRAPAGE [VAGUE ${waveManager.currentWave}]`;
+      } else if (boss.type === 'BOSS_DEMON') {
+        this.bossNameEl.textContent = `😈 MALAKOR : SEIGNEUR DES ABYSSES [VAGUE ${waveManager.currentWave}]`;
+      } else if (boss.type === 'BOSS_LICH') {
+        this.bossNameEl.textContent = `💀 MORTIS : LE ROI LICHE DU NÉANT [VAGUE ${waveManager.currentWave}]`;
+      } else if (boss.type === 'BOSS_TITAN') {
+        this.bossNameEl.textContent = `🗿 TITAN ANCIEN : COLOSSE DE PIERRE [VAGUE ${waveManager.currentWave}]`;
+      } else {
+        this.bossNameEl.textContent = `👑 BOSS ANCIEN [VAGUE ${waveManager.currentWave}]`;
+      }
     } else {
       this.bossHpContainer.style.display = 'none';
     }

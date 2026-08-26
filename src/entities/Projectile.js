@@ -451,3 +451,200 @@ export class PlayerNecroSkullProjectile extends Projectile {
     }
   }
 }
+
+// ==========================================
+// 9. 🐸 TOXIC PUDDLE PROJECTILE (Gromp)
+// ==========================================
+export class ToxicPuddleProjectile extends Projectile {
+  constructor(scene, startPos, targetPos, speed = 14, damage = 18) {
+    super(scene, startPos, targetPos, speed, damage, true);
+    this.radius = 0.6;
+    this.hasLanded = false;
+    this.puddleTimer = 4.5;
+    this.puddleMesh = null;
+  }
+
+  buildMesh() {
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.position.copy(this.position);
+
+    const blobGeo = new THREE.SphereGeometry(0.4, 8, 8);
+    const blobMat = new THREE.MeshBasicMaterial({ color: 0x33ff00 });
+    this.blob = new THREE.Mesh(blobGeo, blobMat);
+    this.group.add(this.blob);
+  }
+
+  update(dt, player, enemies, audio, particles) {
+    if (!this.hasLanded) {
+      this.position.addScaledVector(this.velocity, dt);
+      this.velocity.y -= 15.0 * dt; // Gravity arc
+      this.group.position.copy(this.position);
+
+      if (this.position.y <= 0.1) {
+        this.position.y = 0.05;
+        this.hasLanded = true;
+        this.velocity.set(0, 0, 0);
+
+        // Turn into lingering acid pool on floor
+        this.blob.visible = false;
+        const poolGeo = new THREE.RingGeometry(0.2, 2.2, 24);
+        const poolMat = new THREE.MeshBasicMaterial({ color: 0x33ff00, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
+        this.puddleMesh = new THREE.Mesh(poolGeo, poolMat);
+        this.puddleMesh.rotation.x = -Math.PI / 2;
+        this.group.add(this.puddleMesh);
+
+        if (particles) {
+          particles.spawnHitSparks(this.position, 0, 0, 10);
+        }
+      }
+    } else {
+      // Lingering puddle damage
+      this.puddleTimer -= dt;
+      if (this.puddleMesh) {
+        this.puddleMesh.material.opacity = Math.min(0.65, this.puddleTimer / 2.0);
+      }
+
+      const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+      if (distSq <= 2.2 * 2.2 && !player.isInvulnerable) {
+        player.takeDamage(this.damage * dt * 2.5, audio, particles);
+      }
+
+      if (this.puddleTimer <= 0) {
+        this.destroy();
+      }
+    }
+  }
+}
+
+// ==========================================
+// 10. ☄️ DEMON METEOR PROJECTILE (Demon Lord)
+// ==========================================
+export class DemonMeteorProjectile extends Projectile {
+  constructor(scene, targetPos, damage = 45) {
+    const startPos = { x: targetPos.x + (Math.random() * 4 - 2), y: 22, z: targetPos.z + (Math.random() * 4 - 2) };
+    super(scene, startPos, targetPos, 24, damage, true);
+    this.targetPos = targetPos;
+    this.radius = 1.2;
+    this.hasExploded = false;
+  }
+
+  buildMesh() {
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.position.copy(this.position);
+
+    const rockGeo = new THREE.DodecahedronGeometry(0.85);
+    const rockMat = new THREE.MeshBasicMaterial({ color: 0xff3300 });
+    this.rock = new THREE.Mesh(rockGeo, rockMat);
+    this.group.add(this.rock);
+
+    // Target telegraph ring on the ground
+    const targetGeo = new THREE.RingGeometry(0.3, 4.5, 32);
+    const targetMat = new THREE.MeshBasicMaterial({ color: 0xff1100, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+    this.targetIndicator = new THREE.Mesh(targetGeo, targetMat);
+    this.targetIndicator.rotation.x = -Math.PI / 2;
+    this.targetIndicator.position.set(this.targetPos.x, 0.05, this.targetPos.z);
+    this.scene.add(this.targetIndicator);
+  }
+
+  update(dt, player, enemies, audio, particles) {
+    if (this.isDead) return;
+    this.position.addScaledVector(this.velocity, dt);
+    this.group.position.copy(this.position);
+    this.rock.rotation.x += dt * 5;
+    this.rock.rotation.y += dt * 7;
+
+    if (this.position.y <= 0.3 && !this.hasExploded) {
+      this.hasExploded = true;
+      if (audio) audio.playGroundSlam();
+      if (particles) {
+        particles.spawnShockwave(this.position, 8.5, 0xff3300, 0.8);
+        particles.spawnHitSparks(this.position, 0, 0, 24, true);
+        particles.spawnTextPopup("💥 IMPACT MAGMATIQUE !", this.position, '#ff3300', true);
+      }
+
+      const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+      if (distSq <= 4.5 * 4.5 && !player.isInvulnerable) {
+        player.takeDamage(this.damage, audio, particles);
+        const dx = player.position.x - this.position.x;
+        const dz = player.position.z - this.position.z;
+        const len = Math.sqrt(dx * dx + dz * dz) || 1;
+        player.velocity.x = (dx / len) * 22;
+        player.velocity.z = (dz / len) * 22;
+      }
+
+      if (this.targetIndicator) {
+        this.scene.remove(this.targetIndicator);
+      }
+      this.destroy();
+    }
+  }
+
+  destroy() {
+    if (this.targetIndicator) {
+      this.scene.remove(this.targetIndicator);
+    }
+    super.destroy();
+  }
+}
+
+// ==========================================
+// 11. 💀 DEATH RAY PROJECTILE (Lich King)
+// ==========================================
+export class DeathRayProjectile extends Projectile {
+  constructor(scene, startPos, targetPos, speed = 26, damage = 35) {
+    super(scene, startPos, targetPos, speed, damage, true);
+    this.radius = 0.9;
+    this.life = 2.5;
+  }
+
+  buildMesh() {
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.position.copy(this.position);
+
+    const beamGeo = new THREE.CylinderGeometry(0.28, 0.28, 3.2, 8);
+    const beamMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+    this.beam = new THREE.Mesh(beamGeo, beamMat);
+    this.beam.rotation.x = Math.PI / 2;
+    this.group.add(this.beam);
+  }
+
+  update(dt, player, enemies, audio, particles) {
+    super.update(dt, player, enemies, audio, particles);
+    if (particles) {
+      particles.spawnHitSparks(this.position, 0, 0, 2);
+    }
+  }
+}
+
+// ==========================================
+// 12. 🗿 BOULDER PROJECTILE (Titan Golem)
+// ==========================================
+export class BoulderProjectile extends Projectile {
+  constructor(scene, startPos, targetPos, speed = 16, damage = 42) {
+    super(scene, startPos, targetPos, speed, damage, true);
+    this.radius = 1.4;
+    this.life = 4.0;
+  }
+
+  buildMesh() {
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.position.copy(this.position);
+
+    const rockGeo = new THREE.DodecahedronGeometry(1.2);
+    const rockMat = new THREE.MeshBasicMaterial({ color: 0x666677 });
+    this.rock = new THREE.Mesh(rockGeo, rockMat);
+    this.group.add(this.rock);
+  }
+
+  update(dt, player, enemies, audio, particles) {
+    super.update(dt, player, enemies, audio, particles);
+    if (this.rock) {
+      this.rock.rotation.x += dt * 6;
+      this.rock.rotation.z += dt * 4;
+    }
+  }
+}
