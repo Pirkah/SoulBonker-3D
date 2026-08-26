@@ -58,13 +58,14 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      width: 280px;
+      width: 260px;
       background: var(--bg-dark);
-      padding: 14px 18px;
+      padding: 12px 16px;
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.12);
       backdrop-filter: blur(12px);
       box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      z-index: 10;
     }
 
     .bar-label {
@@ -145,15 +146,16 @@
       flex-direction: column;
       align-items: center;
       background: var(--bg-dark);
-      padding: 10px 28px;
+      padding: 8px 24px;
       border-radius: 30px;
       border: 1px solid rgba(0, 240, 255, 0.3);
       backdrop-filter: blur(12px);
       box-shadow: 0 0 25px rgba(0, 240, 255, 0.2);
+      z-index: 10;
     }
 
     #wave-number {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 900;
       letter-spacing: 2px;
       color: var(--primary);
@@ -161,7 +163,7 @@
     }
 
     #enemy-count {
-      font-size: 12px;
+      font-size: 11px;
       color: #a0aec0;
       font-weight: 600;
     }
@@ -173,16 +175,25 @@
       right: 24px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
+      z-index: 12;
+    }
+
+    .top-right-hud.duel-mode {
+      top: 105px !important;
+      right: 24px !important;
+    }
+    .top-right-hud.duel-mode #mod-hud-btn {
+      display: none !important;
     }
 
     .hud-box {
       background: var(--bg-dark);
-      padding: 10px 16px;
-      border-radius: 12px;
+      padding: 8px 14px;
+      border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.12);
       font-weight: 700;
-      font-size: 14px;
+      font-size: 13px;
       backdrop-filter: blur(12px);
     }
 
@@ -192,11 +203,15 @@
       background: var(--bg-dark);
       border: 1px solid rgba(255, 255, 255, 0.2);
       color: #fff;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 10px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       transition: all 0.2s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
     .interactive-btn:hover {
       background: rgba(255, 255, 255, 0.15);
@@ -867,24 +882,21 @@
       border-color: #00e676;
     }
 
-    /* DUEL IN-GAME OPPONENT HUD */
+    /* DUEL IN-GAME OPPONENT HUD (TOP RIGHT) */
     #duel-hud {
       display: none;
       position: absolute;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 20px;
+      right: 24px;
       flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      width: 360px;
-      max-width: calc(100vw - 320px);
-      background: rgba(14, 18, 30, 0.92);
-      padding: 10px 18px;
-      border-radius: 14px;
+      gap: 8px;
+      width: 260px;
+      background: var(--bg-dark);
+      padding: 12px 16px;
+      border-radius: 12px;
       border: 1.5px solid rgba(255, 0, 85, 0.5);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 0 30px rgba(255, 0, 85, 0.25), 0 8px 24px rgba(0,0,0,0.6);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 25px rgba(255, 0, 85, 0.35);
       z-index: 15;
       pointer-events: none;
     }
@@ -894,28 +906,28 @@
       justify-content: space-between;
       align-items: center;
       width: 100%;
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 0.8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
     }
 
     #duel-opp-hp-track {
       width: 100%;
-      height: 14px;
-      background: rgba(0, 0, 0, 0.8);
-      border-radius: 7px;
+      height: 12px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 6px;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
     }
 
     #duel-opp-hp-fill {
       height: 100%;
       width: 100%;
-      background: linear-gradient(90deg, #ff0055, #ff6600);
-      border-radius: 7px;
-      transition: width 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 14px rgba(255, 0, 85, 0.7);
+      background: linear-gradient(90deg, #ff0055, #ff5252);
+      border-radius: 6px;
+      transition: width 0.15s ease-out;
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.6);
     }
 
     /* 1V1 LOBBY CLASS CHIPS */
@@ -1288,10 +1300,14 @@
       </div>
     </div>
 
-    <!-- TOP CENTER: WAVE -->
+    <!-- TOP CENTER: WAVE INFO & KILLS -->
     <div class="wave-hud">
       <div id="wave-number">VAGUE 1</div>
-      <div id="enemy-count">Ennemis : 0</div>
+      <div style="display: flex; gap: 8px; font-size: 11px; color: #a0aec0; align-items: center;">
+        <span id="enemy-count">Ennemis : 0</span>
+        <span>•</span>
+        <span id="kill-count" style="color: var(--gold); font-weight: 800;">💀 0</span>
+      </div>
     </div>
 
     <!-- BOSS BAR -->
@@ -1302,13 +1318,23 @@
       </div>
     </div>
 
-    <!-- TOP RIGHT: KILLS, MODS & MUTE -->
+    <!-- TOP RIGHT: SYSTEM BUTTONS -->
     <div class="top-right-hud">
-      <div class="hud-box" id="kill-count">💀 0</div>
-      <button class="interactive-btn mod-toggle-hud-btn" id="mod-hud-btn">🛠️ MODS [M]</button>
-      <button class="interactive-btn" id="fullscreen-btn" title="Plein Écran">⛶</button>
+      <button class="interactive-btn mod-toggle-hud-btn" id="mod-hud-btn">🛠️ MODS</button>
       <button class="interactive-btn" id="sound-btn">🔊 SON</button>
-      <button class="interactive-btn" id="pause-btn">⏸️ PAUSE [P]</button>
+      <button class="interactive-btn" id="pause-btn">⏸️ PAUSE</button>
+      <button class="interactive-btn" id="fullscreen-btn" title="Plein Écran">⛶</button>
+    </div>
+
+    <!-- 1V1 IN-GAME OPPONENT HUD (TOP RIGHT) -->
+    <div id="duel-hud">
+      <div id="duel-opp-header">
+        <span id="duel-opp-name" style="color: var(--accent); font-weight: 900; letter-spacing: 0.5px;">⚔️ ADVERSAIRE</span>
+        <span id="duel-opp-hp-text" style="color: #ff5252; font-weight: 800;">100 / 100 PV</span>
+      </div>
+      <div id="duel-opp-hp-track">
+        <div id="duel-opp-hp-fill"></div>
+      </div>
     </div>
 
     <!-- PERFECT DODGE NOTIFICATION -->
@@ -1325,17 +1351,6 @@
       <span><span class="key-badge">L / ESPACE</span> Roulade Esquive</span>
       <span><span class="key-badge">I</span> Ciblage</span>
       <span style="color: var(--primary);">🎯 Visée Auto Laptop Active</span>
-    </div>
-
-    <!-- 1V1 IN-GAME OPPONENT HUD -->
-    <div id="duel-hud">
-      <div id="duel-opp-header">
-        <span id="duel-opp-name">⚔️ ADVERSAIRE</span>
-        <span id="duel-opp-hp-text" style="color: var(--accent);">100 / 100 PV</span>
-      </div>
-      <div id="duel-opp-hp-track">
-        <div id="duel-opp-hp-fill"></div>
-      </div>
     </div>
 
     <!-- MOBILE / TABLET TOUCH CONTROLS OVERLAY -->

@@ -255,10 +255,15 @@ export class DuelManager {
 
   updateHUD() {
     const duelHud = document.getElementById('duel-hud');
+    const waveHud = document.querySelector('.wave-hud');
+    const trHud = document.querySelector('.top-right-hud');
     if (!duelHud) return;
 
     if (this.isActive) {
       duelHud.style.display = 'flex';
+      if (waveHud) waveHud.style.display = 'none';
+      if (trHud) trHud.classList.add('duel-mode');
+
       const opp = this.remotePlayer;
       if (opp) {
         const nameEl = document.getElementById('duel-opp-name');
@@ -274,6 +279,8 @@ export class DuelManager {
       }
     } else {
       duelHud.style.display = 'none';
+      if (waveHud) waveHud.style.display = 'flex';
+      if (trHud) trHud.classList.remove('duel-mode');
     }
   }
 
