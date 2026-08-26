@@ -58,9 +58,9 @@ export class Weapon {
 
       if (model) {
         if (weaponType === 'BOW') {
-          model.scale.set(1.30, 1.30, 1.30);
-          model.position.set(0, 0, 0);
-          model.rotation.set(-Math.PI / 4, 0, 0);
+          model.scale.set(1.45, 1.45, 1.45);
+          model.position.set(0, 0.10, 0);
+          model.rotation.set(0, 0, 0);
         } else if (weaponType === 'STAFF') {
           model.scale.set(1.15, 1.15, 1.15);
           model.position.set(0, 0.15, 0);
