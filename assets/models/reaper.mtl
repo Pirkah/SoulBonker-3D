@@ -1,10 +1,102 @@
-# SoulBonker 3D Reaper Material Library
-newmtl Reaper_Material
-Ns 180.000000
-Ka 0.06 0.08 0.12
-Kd 0.14 0.16 0.22
-Ks 0.75 0.80 0.90
-Ke 0.02 0.04 0.06
+# SoulBonker 3D - Stylized High-Definition Reaper MTL
+
+newmtl Reaper_Cloth
+Ns 60.0
+Ka 0.0800 0.0960 0.1280
+Kd 0.1000 0.1200 0.1600
+Ks 0.3000 0.3000 0.4000
+Ke 0.0100 0.0200 0.0300
 Ni 1.500000
 d 1.000000
 illum 2
+
+newmtl Reaper_DarkSteel
+Ns 280.0
+Ka 0.1440 0.1760 0.2240
+Kd 0.1800 0.2200 0.2800
+Ks 0.8000 0.8500 0.9500
+Ke 0.0200 0.0400 0.0600
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Reaper_SilverTrim
+Ns 400.0
+Ka 0.5200 0.6000 0.6800
+Kd 0.6500 0.7500 0.8500
+Ks 0.9000 0.9500 1.0000
+Ke 0.0500 0.1000 0.1500
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Reaper_VoidFace
+Ns 20.0
+Ka 0.0160 0.0160 0.0320
+Kd 0.0200 0.0200 0.0400
+Ks 0.1000 0.1000 0.1000
+Ke 0.0000 0.0000 0.0000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Reaper_CyanSoulGlow
+Ns 800.0
+Ka 0.0000 0.7600 0.8000
+Kd 0.0000 0.9500 1.0000
+Ks 1.0000 1.0000 1.0000
+Ke 0.2000 0.9000 1.0000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Reaper_TornHem
+Ns 80.0
+Ka 0.0480 0.1440 0.1920
+Kd 0.0600 0.1800 0.2400
+Ks 0.4000 0.6000 0.7000
+Ke 0.0200 0.1000 0.1400
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Reaper_ScytheShaft
+Ns 120.0
+Ka 0.1280 0.0960 0.0800
+Kd 0.1600 0.1200 0.1000
+Ks 0.4000 0.3500 0.3000
+Ke 0.0000 0.0000 0.0000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Reaper_ScytheBlade
+Ns 550.0
+Ka 0.6400 0.7200 0.7840
+Kd 0.8000 0.9000 0.9800
+Ks 0.9500 0.9800 1.0000
+Ke 0.1000 0.3000 0.4000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Reaper_ScytheEdge
+Ns 900.0
+Ka 0.0000 0.7600 0.8000
+Kd 0.0000 0.9500 1.0000
+Ks 1.0000 1.0000 1.0000
+Ke 0.3000 1.0000 1.0000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Reaper_GoldAccents
+Ns 350.0
+Ka 0.7360 0.5920 0.1440
+Kd 0.9200 0.7400 0.1800
+Ks 0.8500 0.8000 0.4000
+Ke 0.0800 0.0600 0.0100
+Ni 1.500000
+d 1.000000
+illum 2
+
