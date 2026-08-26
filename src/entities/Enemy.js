@@ -59,15 +59,40 @@ export class Enemy {
 
     this.hp -= amount;
 
+    // 1. Immediately cancel active attack telegraph indicators so they don't linger
+    if (this.telegraphMat) {
+      this.telegraphMat.opacity = 0;
+    }
+    if (this.telegraphMesh) {
+      this.telegraphMesh.scale.set(1, 1, 1);
+    }
+
+    // 2. Heavy units & Bosses have poise armor (reduced knockback, no vertical launch)
+    const isBoss = this.type.startsWith('BOSS_') || this.type === 'HAMMER_BRUTE' || this.type === 'TITAN_GOLEM';
+    const effectiveForce = isBoss ? force * 0.25 : force;
+
     // Apply Knockback Impulse
-    this.velocity.x = normX * force;
-    this.velocity.z = normZ * force;
-    this.velocity.y = force * (isCrit ? 0.6 : 0.35); // Launch into air
+    this.velocity.x = normX * effectiveForce;
+    this.velocity.z = normZ * effectiveForce;
+    
+    // Only launch vertically for regular mobs on heavy bonk/crit
+    if (!isBoss) {
+      this.velocity.y = (isCrit || force >= 18) ? Math.min(force * 0.25, 5.0) : 0;
+    } else {
+      this.velocity.y = 0;
+    }
+
+    // Flinch recoil angle (tilt backward smoothly without spinning)
+    if (this.modelGroup) {
+      this.modelGroup.rotation.x = -0.35;
+    }
+    this.group.rotation.x = 0;
+    this.group.rotation.z = 0;
 
     this.state = 'KNOCKED_BACK';
     this.stateTimer = 0;
 
-    // Flash Red on hit
+    // Flash hit emissive on hit
     this.flashHitColor();
 
     if (this.hp <= 0) {
@@ -76,15 +101,20 @@ export class Enemy {
   }
 
   flashHitColor() {
-    if (this.bodyMesh && this.bodyMesh.material) {
-      const origColor = this.bodyMesh.material.color.getHex();
-      this.bodyMesh.material.color.setHex(0xffffff);
-      setTimeout(() => {
-        if (this.bodyMesh && this.bodyMesh.material) {
-          this.bodyMesh.material.color.setHex(origColor);
+    this.group.traverse((child) => {
+      if (child.isMesh && child.material && child !== this.telegraphMesh) {
+        const mats = Array.isArray(child.material) ? child.material : [child.material];
+        for (const mat of mats) {
+          if (mat.emissive) {
+            const origEmissive = mat.emissive.getHex();
+            mat.emissive.setHex(0xff2222);
+            setTimeout(() => {
+              if (mat && mat.emissive) mat.emissive.setHex(origEmissive);
+            }, 90);
+          }
         }
-      }, 80);
-    }
+      }
+    });
   }
 
   die() {
@@ -92,13 +122,22 @@ export class Enemy {
     this.isDead = true;
     this.state = 'DEAD';
     this.deathTimer = 0;
+    if (this.telegraphMat) {
+      this.telegraphMat.opacity = 0;
+    }
   }
 
   destroy() {
     this.scene.remove(this.group);
     this.group.traverse((child) => {
       if (child.geometry) child.geometry.dispose();
-      if (child.material) child.material.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m) => m.dispose());
+        } else {
+          child.material.dispose();
+        }
+      }
     });
   }
 
@@ -115,6 +154,7 @@ export class Enemy {
 
     const distToPlayer = MathUtils.dist2D(this.position.x, this.position.z, player.position.x, player.position.z);
     const angleToPlayer = MathUtils.angleTo(this.position.x, this.position.z, player.position.x, player.position.z);
+    const isBoss = this.type.startsWith('BOSS_') || this.type === 'HAMMER_BRUTE' || this.type === 'TITAN_GOLEM';
 
     // Handle Enemy State Machine
     switch (this.state) {
@@ -184,23 +224,33 @@ export class Enemy {
         break;
 
       case 'KNOCKED_BACK':
-        // Tumbling ragdoll physics through the air
-        this.group.rotation.x += dt * 15;
-        this.group.rotation.z += dt * 10;
+        // Smoothly recover from flinch tilt without wild spinning
+        this.group.rotation.x = MathUtils.damp(this.group.rotation.x, 0, 12, dt);
+        this.group.rotation.z = MathUtils.damp(this.group.rotation.z, 0, 12, dt);
+        if (this.modelGroup) {
+          this.modelGroup.rotation.x = MathUtils.damp(this.modelGroup.rotation.x, 0, 8, dt);
+          this.modelGroup.rotation.z = MathUtils.damp(this.modelGroup.rotation.z, 0, 8, dt);
+        }
 
-        if (this.position.y <= 0 && this.stateTimer > 0.4) {
+        const isGrounded = this.position.y <= 0.05;
+        const stunDuration = isBoss ? 0.20 : 0.32;
+
+        if (isGrounded && this.stateTimer >= stunDuration) {
           this.state = 'CHASE';
+          this.stateTimer = 0;
           this.group.rotation.x = 0;
           this.group.rotation.z = 0;
+          if (this.modelGroup) {
+            this.modelGroup.rotation.x = 0;
+            this.modelGroup.rotation.z = 0;
+          }
         }
         break;
     }
 
     // Sync 3D Group Transform
     this.group.position.copy(this.position);
-    if (this.state !== 'KNOCKED_BACK') {
-      this.group.rotation.y = this.rotationY;
-    }
+    this.group.rotation.y = this.rotationY;
   }
 
   animateWalk(dt) {}
