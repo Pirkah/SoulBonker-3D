@@ -84,6 +84,10 @@ export class Weapon {
           model.scale.set(1.20, 1.20, 1.20);
           model.position.set(0, 0, 0);
           model.rotation.set(0, 0, 0);
+        } else if (weaponType === 'CLUB') {
+          model.scale.set(1.15, 1.15, 1.15);
+          model.position.set(0, 0.10, 0);
+          model.rotation.set(0, 0, 0);
         } else {
           model.scale.set(1.05, 1.05, 1.05);
           model.position.set(0, 0.2, 0);
@@ -92,12 +96,12 @@ export class Weapon {
       }
     }).catch(err => console.warn('Could not load weapon model:', err));
 
-    // Optional Glowing Rune Gem at the Tip (for Mage staff & Knight club)
-    if (weaponType === 'STAFF' || weaponType === 'CLUB') {
+    // Optional Glowing Rune Gem at the Tip (for Mage staff only)
+    if (weaponType === 'STAFF') {
       const runeGeo = new THREE.OctahedronGeometry(0.14);
       this.runeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
       this.rune = new THREE.Mesh(runeGeo, this.runeMat);
-      this.rune.position.y = (weaponType === 'STAFF' ? 2.4 : 2.2);
+      this.rune.position.y = 2.4;
       this.group.add(this.rune);
     }
 
