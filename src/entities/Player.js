@@ -341,6 +341,38 @@ export class Player {
       return;
     }
 
+    // Angel-specific Celestial Hover & Wings Flight
+    if (this.currentClass.id === 'ANGEL' && this.modelContainer) {
+      if (isMoving) {
+        this.state = 'RUN';
+        const speed = this.isExhausted ? this.moveSpeed * 0.65 : this.moveSpeed;
+        this.velocity.x = worldMoveX * speed;
+        this.velocity.z = worldMoveZ * speed;
+        this.targetRotationY = Math.atan2(worldMoveX, worldMoveZ);
+
+        const wingFlap = Math.sin(this.animTime * 9.0);
+        this.modelContainer.position.y = 0.20 + wingFlap * 0.10;
+        this.modelContainer.rotation.x = 0.28; // Lean forward into angelic flight
+        this.modelContainer.rotation.z = -wingFlap * 0.05;
+        this.modelContainer.rotation.y = 0;
+
+        if (Math.random() < 0.25) {
+          particles.spawnDustRing(this.position, 0.4);
+        }
+      } else {
+        this.state = 'IDLE';
+        this.velocity.x = 0;
+        this.velocity.z = 0;
+
+        const hover = Math.sin(this.animTime * 3.0);
+        this.modelContainer.position.y = 0.16 + hover * 0.08;
+        this.modelContainer.rotation.x = Math.sin(this.animTime * 1.5) * 0.03;
+        this.modelContainer.rotation.z = Math.sin(this.animTime * 1.8) * 0.03;
+        this.modelContainer.rotation.y = 0;
+      }
+      return;
+    }
+
     if (isMoving) {
       this.state = 'RUN';
       const speed = this.isExhausted ? this.moveSpeed * 0.65 : this.moveSpeed;
@@ -554,13 +586,13 @@ export class Player {
     this.velocity.x = rollDirX * currentSpeed;
     this.velocity.z = rollDirZ * currentSpeed;
 
-    if (this.currentClass.id === 'REAPER') {
-      // Spectral Phase Dash (Phasing through reality)
+    if (this.currentClass.id === 'REAPER' || this.currentClass.id === 'ANGEL') {
+      // Spectral Phase / Celestial Wings Dash
       this.bodyGroup.rotation.x = 0;
       this.bodyGroup.position.y = 0;
       if (this.modelContainer) {
-        this.modelContainer.rotation.x = 0.65; // Horizontal phantom flight
-        this.modelContainer.position.y = 0.25;
+        this.modelContainer.rotation.x = 0.65; // Horizontal celestial flight
+        this.modelContainer.position.y = 0.30;
       }
       if (Math.random() < 0.4 && particles) {
         particles.spawnDustRing(this.position, 0.5);
@@ -661,14 +693,14 @@ export class Player {
         }
       }
     } else {
-      if (this.currentClass.id === 'REAPER' && this.modelContainer) {
-        // High-torque 360-degree Scythe Sweep
-        this.modelContainer.rotation.y = progress * Math.PI * 2.2 - 0.4;
+      if ((this.currentClass.id === 'REAPER' || this.currentClass.id === 'ANGEL') && this.modelContainer) {
+        // High-torque sweeping slash
+        this.modelContainer.rotation.y = progress * Math.PI * (this.currentClass.id === 'REAPER' ? 2.2 : 1.6) - 0.4;
         this.modelContainer.rotation.x = Math.sin(progress * Math.PI) * 0.25;
-        this.modelContainer.position.y = 0.12 + Math.sin(progress * Math.PI) * 0.18;
+        this.modelContainer.position.y = (this.currentClass.id === 'ANGEL' ? 0.20 : 0.12) + Math.sin(progress * Math.PI) * 0.18;
 
         if (progress >= 0.20 && progress <= 0.80 && !this.hasHitCurrentAttack) {
-          this.checkWeaponHit(enemies, audio, particles, false, 1.0, 1.0, true);
+          this.checkWeaponHit(enemies, audio, particles, false, 1.0, 1.0, this.currentClass.id === 'REAPER');
         }
       } else {
         // Melee Swing
@@ -711,19 +743,20 @@ export class Player {
     const attackDuration = 0.52 / this.attackSpeed;
     const progress = this.stateTimer / attackDuration;
 
-    if (this.currentClass.id === 'REAPER' && this.modelContainer) {
+    if ((this.currentClass.id === 'REAPER' || this.currentClass.id === 'ANGEL') && this.modelContainer) {
+      const baseY = (this.currentClass.id === 'ANGEL' ? 0.20 : 0.12);
       if (progress < 0.40) {
         const lift = progress / 0.40;
-        this.modelContainer.position.y = 0.12 + Math.sin(lift * Math.PI * 0.5) * 1.4;
+        this.modelContainer.position.y = baseY + Math.sin(lift * Math.PI * 0.5) * 1.5;
         this.modelContainer.rotation.x = -0.45;
         this.modelContainer.rotation.y = lift * 0.3;
       } else if (progress < 0.75) {
         const slam = (progress - 0.40) / 0.35;
-        this.modelContainer.position.y = 0.12 + (1.0 - slam) * 1.4;
+        this.modelContainer.position.y = baseY + (1.0 - slam) * 1.5;
         this.modelContainer.rotation.x = 0.55;
-        this.modelContainer.rotation.y = 0.3 + slam * Math.PI * 1.6;
+        this.modelContainer.rotation.y = 0.3 + slam * Math.PI * 1.4;
       } else {
-        this.modelContainer.position.y = 0.12;
+        this.modelContainer.position.y = baseY;
         this.modelContainer.rotation.set(0, 0, 0);
       }
     } else {

@@ -186,12 +186,12 @@ export class RemotePlayer {
     if (this.state === 'DODGE') {
       const dodgeDur = 0.42;
       const prog = Math.min(1.0, this.stateTimer / dodgeDur);
-      if (this.currentClass.id === 'REAPER') {
+      if (this.currentClass.id === 'REAPER' || this.currentClass.id === 'ANGEL') {
         this.bodyGroup.rotation.x = 0;
         this.bodyGroup.position.y = 0;
         if (this.modelContainer) {
           this.modelContainer.rotation.x = 0.65;
-          this.modelContainer.position.y = 0.25;
+          this.modelContainer.position.y = 0.28;
         }
       } else {
         this.bodyGroup.rotation.x = Math.sin(prog * Math.PI) * Math.PI * 2;
@@ -211,23 +211,24 @@ export class RemotePlayer {
       const attackDur = isHeavy ? 0.65 : 0.32;
       const prog = Math.min(1.0, this.stateTimer / attackDur);
 
-      if (this.currentClass.id === 'REAPER' && this.modelContainer) {
+      if ((this.currentClass.id === 'REAPER' || this.currentClass.id === 'ANGEL') && this.modelContainer) {
+        const baseY = (this.currentClass.id === 'ANGEL' ? 0.20 : 0.12);
         if (isHeavy) {
           if (prog < 0.40) {
             const lift = prog / 0.40;
-            this.modelContainer.position.y = 0.12 + Math.sin(lift * Math.PI * 0.5) * 1.4;
+            this.modelContainer.position.y = baseY + Math.sin(lift * Math.PI * 0.5) * 1.5;
             this.modelContainer.rotation.x = -0.45;
             this.modelContainer.rotation.y = lift * 0.3;
           } else {
             const slam = (prog - 0.40) / 0.60;
-            this.modelContainer.position.y = 0.12 + (1.0 - slam) * 1.4;
+            this.modelContainer.position.y = baseY + (1.0 - slam) * 1.5;
             this.modelContainer.rotation.x = 0.55;
-            this.modelContainer.rotation.y = 0.3 + slam * Math.PI * 1.6;
+            this.modelContainer.rotation.y = 0.3 + slam * Math.PI * 1.4;
           }
         } else {
-          this.modelContainer.rotation.y = prog * Math.PI * 2.2 - 0.4;
+          this.modelContainer.rotation.y = prog * Math.PI * (this.currentClass.id === 'REAPER' ? 2.2 : 1.6) - 0.4;
           this.modelContainer.rotation.x = Math.sin(prog * Math.PI) * 0.25;
-          this.modelContainer.position.y = 0.12 + Math.sin(prog * Math.PI) * 0.18;
+          this.modelContainer.position.y = baseY + Math.sin(prog * Math.PI) * 0.18;
         }
       } else if (this.currentClass.isRanged) {
         this.rightArm.rotation.set(0.2, 0, -0.6);
@@ -239,22 +240,25 @@ export class RemotePlayer {
 
       if (this.stateTimer >= attackDur) {
         this.state = 'IDLE';
-        this.rightArm.rotation.set(0.3, 0, -0.2);
-        this.leftArm.rotation.set(0, 0, 0.1);
+        this.rightArm.rotation.set(0, 0, 0);
+        this.leftArm.rotation.set(0, 0, 0);
         if (this.modelContainer) {
           this.modelContainer.position.set(0, 0.12, 0);
           this.modelContainer.rotation.set(0, 0, 0);
         }
       }
     } else if (isMoving) {
-      if (this.currentClass.id === 'REAPER' && this.modelContainer) {
-        const hover = Math.sin(this.animTime * 8.0);
-        this.modelContainer.position.y = 0.15 + hover * 0.08;
-        this.modelContainer.rotation.x = 0.32;
-        this.modelContainer.rotation.z = -hover * 0.06;
-        this.modelContainer.rotation.y = 0;
+      this.state = 'RUN';
+      if (this.currentClass.id === 'REAPER' || this.currentClass.id === 'ANGEL') {
+        const hover = Math.sin(this.animTime * (this.currentClass.id === 'ANGEL' ? 9.0 : 8.0));
+        if (this.modelContainer) {
+          this.modelContainer.position.y = (this.currentClass.id === 'ANGEL' ? 0.20 : 0.15) + hover * 0.08;
+          this.modelContainer.rotation.x = 0.28;
+          this.modelContainer.rotation.z = -hover * 0.06;
+          this.modelContainer.rotation.y = 0;
+        }
       } else {
-        const walkCycle = Math.sin(this.animTime * 14);
+        const walkCycle = Math.sin(this.animTime * 12);
         this.leftLeg.rotation.x = walkCycle * 0.6;
         this.rightLeg.rotation.x = -walkCycle * 0.6;
         this.leftArm.rotation.x = -walkCycle * 0.5;
@@ -262,12 +266,15 @@ export class RemotePlayer {
         this.torso.position.y = 0.95 + Math.abs(walkCycle) * 0.08;
       }
     } else {
-      if (this.currentClass.id === 'REAPER' && this.modelContainer) {
-        const breath = Math.sin(this.animTime * 2.8);
-        this.modelContainer.position.y = 0.12 + breath * 0.08;
-        this.modelContainer.rotation.x = Math.sin(this.animTime * 1.6) * 0.04;
-        this.modelContainer.rotation.z = Math.sin(this.animTime * 1.2) * 0.04;
-        this.modelContainer.rotation.y = 0;
+      this.state = 'IDLE';
+      if (this.currentClass.id === 'REAPER' || this.currentClass.id === 'ANGEL') {
+        const breath = Math.sin(this.animTime * (this.currentClass.id === 'ANGEL' ? 3.0 : 2.8));
+        if (this.modelContainer) {
+          this.modelContainer.position.y = (this.currentClass.id === 'ANGEL' ? 0.16 : 0.12) + breath * 0.08;
+          this.modelContainer.rotation.x = Math.sin(this.animTime * 1.5) * 0.03;
+          this.modelContainer.rotation.z = Math.sin(this.animTime * 1.8) * 0.03;
+          this.modelContainer.rotation.y = 0;
+        }
       } else {
         const breath = Math.sin(this.animTime * 3);
         this.torso.position.y = 0.95 + breath * 0.02;

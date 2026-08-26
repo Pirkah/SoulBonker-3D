@@ -72,8 +72,9 @@ export class Weapon {
           model.position.set(0, 0, 0);
           model.rotation.set(0, 0, 0);
         } else if (weaponType === 'ANGEL_SWORD') {
-          model.scale.set(1.15, 1.15, 1.15);
-          model.position.set(0, 0.25, 0);
+          model.scale.set(1.45, 1.45, 1.45);
+          model.position.set(0, 0.15, 0);
+          model.rotation.set(0, 0, 0);
         } else if (weaponType === 'DAGGER') {
           model.scale.set(1.12, 1.12, 1.12);
           model.position.set(0, 0.15, 0);
