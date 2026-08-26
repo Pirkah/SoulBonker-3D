@@ -12,6 +12,12 @@ export const MathUtils = {
     return MathUtils.lerp(a, b, 1 - Math.exp(-lambda * dt));
   },
 
+  // Frame-rate independent shortest-arc angle smoothing
+  dampAngle: (current, target, lambda, dt) => {
+    const diff = MathUtils.angleDiff(target, current);
+    return current + diff * (1 - Math.exp(-lambda * dt));
+  },
+
   randomRange: (min, max) => Math.random() * (max - min) + min,
 
   randomInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,

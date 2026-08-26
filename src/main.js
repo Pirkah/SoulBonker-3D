@@ -29,6 +29,8 @@ class Game {
     this.initWorld();
     this.initEvents();
 
+    window.game = this;
+
     // Global Slow-mo Hook for Perfect Dodge
     window.triggerSlowMo = (duration = 1.2, scale = 0.15) => {
       this.timeScale = scale;
