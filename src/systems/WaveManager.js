@@ -21,6 +21,7 @@ export class WaveManager {
     this.currentWave = waveNumber;
     this.isWaveActive = true;
     this.enemiesRemainingToSpawn = this.generateWaveComposition(waveNumber);
+    this.spawnTimer = this.spawnInterval; // Immediate initial mob spawn!
   }
 
   generateWaveComposition(wave) {

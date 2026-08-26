@@ -99,37 +99,18 @@ export class ModMenu {
     `;
 
     document.body.appendChild(this.menuEl);
-
-    // Add visible button to top right HUD
-    const hudTopRight = document.querySelector('.top-right-hud');
-    if (hudTopRight) {
-      const modToggleBtn = document.createElement('button');
-      modToggleBtn.className = 'interactive-btn mod-toggle-hud-btn';
-      modToggleBtn.id = 'hud-mod-btn';
-      modToggleBtn.innerHTML = '🛠️ MODS [M]';
-      modToggleBtn.style.background = 'linear-gradient(90deg, #00f0ff, #aa00ff)';
-      modToggleBtn.style.color = '#000';
-      modToggleBtn.style.fontWeight = '900';
-      modToggleBtn.onclick = (e) => {
-        e.stopPropagation();
-        this.toggle();
-      };
-      hudTopRight.prepend(modToggleBtn);
-    }
   }
 
   bindEvents() {
-    // 1. Direct Global Keyboard Listener for M, m, ², Backquote, F1
-    window.addEventListener('keydown', (e) => {
-      const key = e.key.toLowerCase();
-      const code = e.code;
-      if (key === 'm' || code === 'KeyM' || key === '²' || code === 'Backquote' || code === 'F1') {
-        this.toggle();
-      }
-    });
-
     // Close button
-    document.getElementById('mod-close-btn').onclick = () => this.toggle(false);
+    const closeBtn = document.getElementById('mod-close-btn');
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        this.toggle(false);
+        window.focus();
+        this.game.input.flush();
+      };
+    }
 
     // Toggle Time Freeze
     const freezeBtn = document.getElementById('mod-freeze-btn');
@@ -276,21 +257,29 @@ export class ModMenu {
     document.getElementById('switch-knight-btn').onclick = () => {
       this.game.selectCharacterClass('KNIGHT', false);
       this.toggle(false);
+      window.focus();
+      this.game.input.flush();
     };
 
     document.getElementById('switch-archer-btn').onclick = () => {
       this.game.selectCharacterClass('ARCHER', false);
       this.toggle(false);
+      window.focus();
+      this.game.input.flush();
     };
 
     document.getElementById('switch-mage-btn').onclick = () => {
       this.game.selectCharacterClass('MAGE', false);
       this.toggle(false);
+      window.focus();
+      this.game.input.flush();
     };
 
     document.getElementById('switch-sm-btn').onclick = () => {
       this.game.selectCharacterClass('SPACEMARINE', false);
       this.toggle(false);
+      window.focus();
+      this.game.input.flush();
     };
   }
 

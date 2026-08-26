@@ -125,7 +125,7 @@ class Game {
     this.particles.spawnTextPopup(`✨ ${classData.name}`, this.player.position, classData.color || '#00f0ff', true);
 
     if (startImmediately) {
-      this.startGame();
+      this.startGame(classKey);
     }
   }
 
@@ -170,7 +170,7 @@ class Game {
       if (card) {
         card.addEventListener('click', (e) => {
           e.stopPropagation();
-          this.startGame(key);
+          this.selectCharacterClass(key, true);
         });
       }
 
@@ -178,7 +178,7 @@ class Game {
       if (btn) {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          this.startGame(key);
+          this.selectCharacterClass(key, true);
         });
       }
     });
@@ -188,7 +188,7 @@ class Game {
     if (startBtn) {
       startBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        this.startGame();
+        this.startGame(this.selectedClassKey);
       });
     }
 
@@ -199,18 +199,26 @@ class Game {
 
         // Class Quick Select Keys -> immediately starts with that class!
         if (code === 'Digit1' || code === 'Numpad1' || key === '1') {
-          this.startGame('KNIGHT');
+          this.selectCharacterClass('KNIGHT', true);
         } else if (code === 'Digit2' || code === 'Numpad2' || key === '2') {
-          this.startGame('ARCHER');
+          this.selectCharacterClass('ARCHER', true);
         } else if (code === 'Digit3' || code === 'Numpad3' || key === '3') {
-          this.startGame('MAGE');
+          this.selectCharacterClass('MAGE', true);
         } else if (code === 'Digit4' || code === 'Numpad4' || key === '4') {
-          this.startGame('SPACEMARINE');
+          this.selectCharacterClass('SPACEMARINE', true);
         } else if (code === 'Space' || key === ' ' || code === 'Enter' || code === 'KeyJ' || key === 'j') {
-          this.startGame();
+          this.startGame(this.selectedClassKey);
         }
       }
     });
+
+    // Mod Menu HUD Button
+    const modBtn = document.getElementById('mod-hud-btn');
+    if (modBtn) {
+      modBtn.addEventListener('click', () => {
+        this.modMenu.toggle();
+      });
+    }
 
     // Sound Toggle Button
     const soundBtn = document.getElementById('sound-btn');
@@ -304,10 +312,6 @@ class Game {
     // Toggle Mod Menu (M / ² / F1)
     if (this.input.actions.toggleModMenu) {
       this.modMenu.toggle();
-    }
-
-    if (this.gameState === 'START' && this.input.actions.startOrRestart) {
-      this.startGame();
     }
 
     if (this.gameState === 'UPGRADE') {
