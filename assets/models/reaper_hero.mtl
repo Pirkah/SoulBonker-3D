@@ -1,0 +1,30 @@
+# SoulBonker 3D Reaper Material Library
+newmtl Reaper_Cloak
+Ns 90.000000
+Ka 0.05 0.06 0.08
+Kd 0.07 0.08 0.11
+Ks 0.20 0.20 0.25
+Ke 0.00 0.00 0.00
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Reaper_Armor
+Ns 220.000000
+Ka 0.12 0.13 0.16
+Kd 0.24 0.26 0.32
+Ks 0.75 0.75 0.85
+Ke 0.02 0.04 0.08
+Ni 1.600000
+d 1.000000
+illum 2
+
+newmtl Reaper_CyanGlow
+Ns 350.000000
+Ka 0.00 0.80 1.00
+Kd 0.00 0.95 1.00
+Ks 0.90 0.95 1.00
+Ke 0.00 0.90 1.00
+Ni 1.500000
+d 1.000000
+illum 2
