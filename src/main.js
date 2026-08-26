@@ -262,15 +262,21 @@ class Game {
       const isDuelOpen = duelModal && duelModal.style.display !== 'none';
 
       if (isStartOpen || isDuelOpen) {
-        if (e.key === '1' || e.code === 'Digit1') this.selectCharacterClass('KNIGHT', false);
-        if (e.key === '2' || e.code === 'Digit2') this.selectCharacterClass('ARCHER', false);
-        if (e.key === '3' || e.code === 'Digit3') this.selectCharacterClass('MAGE', false);
-        if (e.key === '4' || e.code === 'Digit4') this.selectCharacterClass('SPACEMARINE', false);
-        if (e.key === '5' || e.code === 'Digit5') this.selectCharacterClass('ANGEL', false);
-        if (e.key === '6' || e.code === 'Digit6') this.selectCharacterClass('ROGUE', false);
-        if (e.key === '7' || e.code === 'Digit7') this.selectCharacterClass('ORK', false);
-        if (e.key === '8' || e.code === 'Digit8') this.selectCharacterClass('REAPER', false);
-        if (e.key === '9' || e.code === 'Digit9') this.selectCharacterClass('NECROMANCER', false);
+        if (e.key === '1' || e.code === 'Digit1' || e.code === 'Numpad1') this.selectCharacterClass('KNIGHT', false);
+        else if (e.key === '2' || e.code === 'Digit2' || e.code === 'Numpad2') this.selectCharacterClass('ARCHER', false);
+        else if (e.key === '3' || e.code === 'Digit3' || e.code === 'Numpad3') this.selectCharacterClass('MAGE', false);
+        else if (e.key === '4' || e.code === 'Digit4' || e.code === 'Numpad4') this.selectCharacterClass('SPACEMARINE', false);
+        else if (e.key === '5' || e.code === 'Digit5' || e.code === 'Numpad5') this.selectCharacterClass('ANGEL', false);
+        else if (e.key === '6' || e.code === 'Digit6' || e.code === 'Numpad6') this.selectCharacterClass('ROGUE', false);
+        else if (e.key === '7' || e.code === 'Digit7' || e.code === 'Numpad7') this.selectCharacterClass('ORK', false);
+        else if (e.key === '8' || e.code === 'Digit8' || e.code === 'Numpad8') this.selectCharacterClass('REAPER', false);
+        else if (e.key === '9' || e.code === 'Digit9' || e.code === 'Numpad9') this.selectCharacterClass('NECROMANCER', false);
+      }
+
+      if (this.gameState === 'START' && isStartOpen) {
+        if (e.code === 'Space' || e.key === ' ' || e.code === 'Enter') {
+          this.startGame(this.selectedClassKey);
+        }
       }
     });
 
@@ -435,26 +441,6 @@ class Game {
         }, 500);
       }
     }
-
-    window.addEventListener('keydown', (e) => {
-      if (this.gameState === 'START') {
-        const code = e.code;
-        const key = e.key;
-
-        // Class Quick Select Keys -> immediately starts with that class!
-        if (code === 'Digit1' || code === 'Numpad1' || key === '1') {
-          this.selectCharacterClass('KNIGHT', true);
-        } else if (code === 'Digit2' || code === 'Numpad2' || key === '2') {
-          this.selectCharacterClass('ARCHER', true);
-        } else if (code === 'Digit3' || code === 'Numpad3' || key === '3') {
-          this.selectCharacterClass('MAGE', true);
-        } else if (code === 'Digit4' || code === 'Numpad4' || key === '4') {
-          this.selectCharacterClass('SPACEMARINE', true);
-        } else if (code === 'Space' || key === ' ' || code === 'Enter' || code === 'KeyJ' || key === 'j') {
-          this.startGame(this.selectedClassKey);
-        }
-      }
-    });
 
     // Mod Menu HUD Button
     const modBtn = document.getElementById('mod-hud-btn');

@@ -87,12 +87,17 @@ export class ModMenu {
 
         <!-- SECTION 4: CHANGEMENT DE CLASSE EN DIRECT -->
         <div class="mod-section">
-          <div class="mod-section-title">🎭 CHANGER DE CLASSE EN DIRECT</div>
-          <div class="mod-grid">
-            <button class="mod-btn" id="switch-knight-btn">🛡️ Chevalier Bonkeur</button>
-            <button class="mod-btn" id="switch-archer-btn">🏹 Rôdeur Sylvestre (Archer)</button>
-            <button class="mod-btn" id="switch-mage-btn">🧙 Archimage Arcanique (Mage)</button>
-            <button class="mod-btn" id="switch-sm-btn">⚔️ Black Templar (Space Marine)</button>
+          <div class="mod-section-title">🎭 CHANGER DE CLASSE EN DIRECT (EN PLEINE GAME)</div>
+          <div class="mod-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <button class="mod-btn" id="switch-knight-btn">🛡️ Chevalier</button>
+            <button class="mod-btn" id="switch-archer-btn">🏹 Archer</button>
+            <button class="mod-btn" id="switch-mage-btn">🧙 Mage</button>
+            <button class="mod-btn" id="switch-sm-btn">⚔️ Black Templar</button>
+            <button class="mod-btn" id="switch-angel-btn">👼 Ange</button>
+            <button class="mod-btn" id="switch-rogue-btn">🗡️ Voleur</button>
+            <button class="mod-btn" id="switch-ork-btn">🧌 Ork</button>
+            <button class="mod-btn" id="switch-reaper-btn">💀 Faucheur</button>
+            <button class="mod-btn" id="switch-necro-btn">🧟 Nécromancien</button>
           </div>
         </div>
       </div>
@@ -253,34 +258,30 @@ export class ModMenu {
       this.toggle(false);
     };
 
-    // Live Class Switching
-    document.getElementById('switch-knight-btn').onclick = () => {
-      this.game.selectCharacterClass('KNIGHT', false);
-      this.toggle(false);
-      window.focus();
-      this.game.input.flush();
-    };
+    // Live Class Switching (all 9 classes)
+    const switchClasses = [
+      { id: 'switch-knight-btn', key: 'KNIGHT' },
+      { id: 'switch-archer-btn', key: 'ARCHER' },
+      { id: 'switch-mage-btn', key: 'MAGE' },
+      { id: 'switch-sm-btn', key: 'SPACEMARINE' },
+      { id: 'switch-angel-btn', key: 'ANGEL' },
+      { id: 'switch-rogue-btn', key: 'ROGUE' },
+      { id: 'switch-ork-btn', key: 'ORK' },
+      { id: 'switch-reaper-btn', key: 'REAPER' },
+      { id: 'switch-necro-btn', key: 'NECROMANCER' }
+    ];
 
-    document.getElementById('switch-archer-btn').onclick = () => {
-      this.game.selectCharacterClass('ARCHER', false);
-      this.toggle(false);
-      window.focus();
-      this.game.input.flush();
-    };
-
-    document.getElementById('switch-mage-btn').onclick = () => {
-      this.game.selectCharacterClass('MAGE', false);
-      this.toggle(false);
-      window.focus();
-      this.game.input.flush();
-    };
-
-    document.getElementById('switch-sm-btn').onclick = () => {
-      this.game.selectCharacterClass('SPACEMARINE', false);
-      this.toggle(false);
-      window.focus();
-      this.game.input.flush();
-    };
+    switchClasses.forEach(({ id, key }) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.onclick = () => {
+          this.game.selectCharacterClass(key, false);
+          this.toggle(false);
+          window.focus();
+          this.game.input.flush();
+        };
+      }
+    });
   }
 
   toggle(forceState) {
