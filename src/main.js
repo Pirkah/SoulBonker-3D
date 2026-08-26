@@ -223,7 +223,7 @@ class Game {
     });
 
     // Character Selection Cards Binding (Solo & 1v1)
-    const classKeys = ['KNIGHT', 'ARCHER', 'MAGE', 'SPACEMARINE'];
+    const classKeys = ['KNIGHT', 'ARCHER', 'MAGE', 'SPACEMARINE', 'ANGEL', 'ROGUE', 'ORK', 'REAPER', 'NECROMANCER'];
     classKeys.forEach((key) => {
       // Solo Start Screen Card (Click selects the card)
       const card = document.querySelector(`.hero-card[data-class="${key}"]`);
@@ -254,7 +254,7 @@ class Game {
       }
     });
 
-    // Keyboard numbers [1, 2, 3, 4] for class selection
+    // Keyboard numbers [1 to 9] for class selection
     window.addEventListener('keydown', (e) => {
       const startModal = document.getElementById('start-modal');
       const duelModal = document.getElementById('duel-lobby-modal');
@@ -266,6 +266,11 @@ class Game {
         if (e.key === '2' || e.code === 'Digit2') this.selectCharacterClass('ARCHER', false);
         if (e.key === '3' || e.code === 'Digit3') this.selectCharacterClass('MAGE', false);
         if (e.key === '4' || e.code === 'Digit4') this.selectCharacterClass('SPACEMARINE', false);
+        if (e.key === '5' || e.code === 'Digit5') this.selectCharacterClass('ANGEL', false);
+        if (e.key === '6' || e.code === 'Digit6') this.selectCharacterClass('ROGUE', false);
+        if (e.key === '7' || e.code === 'Digit7') this.selectCharacterClass('ORK', false);
+        if (e.key === '8' || e.code === 'Digit8') this.selectCharacterClass('REAPER', false);
+        if (e.key === '9' || e.code === 'Digit9') this.selectCharacterClass('NECROMANCER', false);
       }
     });
 
@@ -592,6 +597,13 @@ class Game {
         this.player.update(dt, this.input, this.audio, this.particles, this.waveManager.enemies, this.cameraController.yaw);
         this.physics.updateEntity(this.player, dt, this.audio, this.particles);
 
+        // Update Player Minions (Necromancer Skeletons)
+        if (this.player.minionsList && this.player.minionsList.length > 0) {
+          for (const minion of this.player.minionsList) {
+            minion.update(dt, this.waveManager.enemies, null, this.audio);
+          }
+        }
+
         // Update Wave Manager & Enemies (Freeze enemy dt if Time Freeze cheat is ON!)
         const enemyDt = this.modMenu.timeFreezeEnemies ? 0 : dt;
 
@@ -623,6 +635,13 @@ class Game {
         // Update local player with opponent as target
         this.player.update(dt, this.input, this.audio, this.particles, opponents, this.cameraController.yaw);
         this.physics.updateEntity(this.player, dt, this.audio, this.particles);
+
+        // Update local player minions in 1v1
+        if (this.player.minionsList && this.player.minionsList.length > 0) {
+          for (const minion of this.player.minionsList) {
+            minion.update(dt, [], this.duelManager.remotePlayer, this.audio);
+          }
+        }
 
         // Update 1v1 Duel Manager (remote sync, projectiles, hp)
         this.duelManager.update(dt, this.player);

@@ -86,7 +86,13 @@ export class RemotePlayer {
           this.modelContainer.remove(this.modelContainer.children[0]);
         }
         if (model) {
-          const scale = classData.id === 'SPACEMARINE' ? 1.45 : (classData.id === 'ARCHER' ? 1.30 : (classData.id === 'MAGE' ? 1.32 : 1.38));
+          let scale = 1.35;
+          if (classData.id === 'SPACEMARINE' || classData.id === 'ORK') scale = 1.48;
+          else if (classData.id === 'ARCHER' || classData.id === 'ROGUE') scale = 1.30;
+          else if (classData.id === 'ANGEL') scale = 1.38;
+          else if (classData.id === 'REAPER') scale = 1.36;
+          else if (classData.id === 'MAGE' || classData.id === 'NECROMANCER') scale = 1.32;
+
           model.scale.set(scale, scale, scale);
           model.position.set(0, 0.12, 0);
           this.modelContainer.add(model);

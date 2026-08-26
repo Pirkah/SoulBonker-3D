@@ -318,6 +318,13 @@
       pointer-events: auto;
     }
 
+    #start-modal {
+      justify-content: flex-start;
+      padding-top: 24px;
+      padding-bottom: 24px;
+      overflow-y: auto;
+    }
+
     .modal-title {
       font-size: 32px;
       font-weight: 900;
@@ -326,10 +333,20 @@
       text-align: center;
     }
 
+    #start-modal .modal-title {
+      font-size: 26px;
+      margin-bottom: 4px;
+    }
+
     .modal-subtitle {
       font-size: 15px;
       color: #94a3b8;
       margin-bottom: 32px;
+    }
+
+    #start-modal .modal-subtitle {
+      font-size: 13px;
+      margin-bottom: 14px;
     }
 
     /* ROGUE-LITE UPGRADE CARDS */
@@ -430,18 +447,18 @@
     /* === CHARACTER SELECTION CARDS === */
     .hero-cards-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      max-width: 1080px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      max-width: 1040px;
       width: 95%;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
     .hero-card {
       background: rgba(14, 18, 30, 0.94);
       border: 2px solid rgba(255, 255, 255, 0.12);
-      border-radius: 16px;
-      padding: 16px 14px;
+      border-radius: 14px;
+      padding: 10px 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -451,64 +468,71 @@
       position: relative;
       overflow: hidden;
       backdrop-filter: blur(12px);
+      flex-shrink: 0;
+      justify-content: space-between;
     }
 
     .hero-card:hover, .hero-card.selected {
-      transform: translateY(-8px) scale(1.025);
+      transform: translateY(-5px) scale(1.02);
       border-color: var(--hero-color, var(--primary));
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px var(--hero-glow);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 16px var(--hero-glow);
     }
 
     .hero-card.knight { --hero-color: #00f0ff; --hero-glow: rgba(0, 240, 255, 0.35); }
     .hero-card.archer { --hero-color: #00ff88; --hero-glow: rgba(0, 255, 136, 0.35); }
     .hero-card.mage { --hero-color: #bb44ff; --hero-glow: rgba(187, 68, 255, 0.35); }
     .hero-card.spacemarine { --hero-color: #ff3300; --hero-glow: rgba(255, 51, 0, 0.45); }
+    .hero-card.angel { --hero-color: #ffd700; --hero-glow: rgba(255, 215, 0, 0.4); }
+    .hero-card.rogue { --hero-color: #e0aaff; --hero-glow: rgba(224, 170, 255, 0.4); }
+    .hero-card.ork { --hero-color: #44bb22; --hero-glow: rgba(68, 187, 34, 0.4); }
+    .hero-card.reaper { --hero-color: #00e5ff; --hero-glow: rgba(0, 229, 255, 0.4); }
+    .hero-card.necromancer { --hero-color: #00ff66; --hero-glow: rgba(0, 255, 102, 0.45); }
 
     .hero-shortcut {
       position: absolute;
-      top: 10px;
-      right: 12px;
-      font-size: 11px;
+      top: 8px;
+      right: 10px;
+      font-size: 10px;
       font-weight: 900;
       color: #fff;
       background: rgba(255,255,255,0.12);
-      padding: 3px 7px;
-      border-radius: 6px;
+      padding: 2px 6px;
+      border-radius: 5px;
       border: 1px solid rgba(255,255,255,0.15);
     }
 
     .hero-icon {
-      font-size: 42px;
-      margin-bottom: 6px;
-      filter: drop-shadow(0 0 8px var(--hero-glow));
+      font-size: 30px;
+      margin-bottom: 2px;
+      filter: drop-shadow(0 0 6px var(--hero-glow));
     }
 
     .hero-name {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 900;
       color: #fff;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
     }
 
     .hero-title {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       color: var(--hero-color);
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       text-transform: uppercase;
     }
 
     .hero-stats {
       width: 100%;
       background: rgba(0, 0, 0, 0.45);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 11px;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 9.5px;
       display: flex;
       flex-direction: column;
-      gap: 3px;
-      margin-bottom: 10px;
+      gap: 2px;
+      margin-bottom: 6px;
       text-align: left;
       border: 1px solid rgba(255,255,255,0.06);
     }
@@ -521,39 +545,39 @@
 
     .hero-stat-val {
       color: #ffd700;
-      font-size: 10px;
-      letter-spacing: 1px;
+      font-size: 9px;
+      letter-spacing: 0.5px;
     }
 
     .hero-desc {
-      font-size: 11.5px;
+      font-size: 10.5px;
       color: #cbd5e1;
-      line-height: 1.35;
-      margin-bottom: 12px;
+      line-height: 1.25;
+      margin-bottom: 6px;
       flex-grow: 1;
     }
 
     .hero-perk-badge {
       width: 100%;
-      font-size: 10.5px;
+      font-size: 9.5px;
       font-weight: 700;
       color: var(--hero-color);
       background: rgba(255,255,255,0.05);
-      padding: 4px;
-      border-radius: 6px;
-      margin-bottom: 12px;
+      padding: 3px;
+      border-radius: 5px;
+      margin-bottom: 6px;
       border: 1px solid rgba(255,255,255,0.08);
     }
 
     .hero-select-btn {
       width: 100%;
-      padding: 9px;
+      padding: 7px;
       border: none;
-      border-radius: 8px;
+      border-radius: 7px;
       background: var(--hero-color);
       color: #000;
       font-weight: 900;
-      font-size: 12px;
+      font-size: 11px;
       cursor: pointer;
       letter-spacing: 0.5px;
       transition: opacity 0.2s;
@@ -1028,7 +1052,7 @@
   <!-- START / CHARACTER SELECTION MODAL -->
   <div class="modal-overlay" id="start-modal">
     <h1 class="modal-title" style="color: var(--primary); text-shadow: 0 0 25px rgba(0,240,255,0.6);">CHOISISSEZ VOTRE HÉROS</h1>
-    <p class="modal-subtitle">Sélectionnez une classe avec les touches [1], [2], [3], [4] ou à la souris :</p>
+    <p class="modal-subtitle">Sélectionnez une classe avec les touches [1] à [9] ou à la souris :</p>
     
     <div class="hero-cards-grid" id="hero-selection-grid">
       <!-- 1. CHEVALIER -->
@@ -1036,7 +1060,7 @@
         <div class="hero-shortcut">[1]</div>
         <div class="hero-icon">🛡️</div>
         <div class="hero-name">Chevalier Bonkeur</div>
-        <div class="hero-title">Guerrier d'Élite</div>
+        <div class="hero-title">Guerrier Souls-Like</div>
         <div class="hero-stats">
           <div class="hero-stat-row"><span>Santé (PV) :</span> <span class="hero-stat-val">120 PV ⭐⭐⭐⭐</span></div>
           <div class="hero-stat-row"><span>Vitesse :</span> <span class="hero-stat-val">Normale ⭐⭐⭐</span></div>
@@ -1094,6 +1118,86 @@
         <div class="hero-perk-badge">🚀 Lourd : Frappe & Roquette Bolter</div>
         <button class="hero-select-btn" id="btn-spacemarine">JOUER BLACK TEMPLAR [4]</button>
       </div>
+
+      <!-- 5. ANGE CÉLESTE -->
+      <div class="hero-card angel" data-class="ANGEL" id="card-angel">
+        <div class="hero-shortcut">[5]</div>
+        <div class="hero-icon">👼</div>
+        <div class="hero-name">Ange Céleste</div>
+        <div class="hero-title">Paladin de Lumière</div>
+        <div class="hero-stats">
+          <div class="hero-stat-row"><span>Santé (PV) :</span> <span class="hero-stat-val">130 PV ⭐⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Vitesse :</span> <span class="hero-stat-val">Aérienne ⭐⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Dégâts :</span> <span class="hero-stat-val">Sacrés ⭐⭐⭐⭐</span></div>
+        </div>
+        <div class="hero-desc">Archange divin. Ailes de lumière, frappes éblouissantes et rayon de châtiment sacré.</div>
+        <div class="hero-perk-badge">☀️ Lourd : Châtiment Céleste</div>
+        <button class="hero-select-btn" id="btn-angel">JOUER ANGE [5]</button>
+      </div>
+
+      <!-- 6. VOLEUR DE L'OMBRE -->
+      <div class="hero-card rogue" data-class="ROGUE" id="card-rogue">
+        <div class="hero-shortcut">[6]</div>
+        <div class="hero-icon">🗡️</div>
+        <div class="hero-name">Voleur de l'Ombre</div>
+        <div class="hero-title">Assassin Fantôme</div>
+        <div class="hero-stats">
+          <div class="hero-stat-row"><span>Santé (PV) :</span> <span class="hero-stat-val">80 PV ⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Vitesse :</span> <span class="hero-stat-val">Supersonique ⭐⭐⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Critiques :</span> <span class="hero-stat-val">Mortels (3.0x) ⭐⭐⭐⭐⭐</span></div>
+        </div>
+        <div class="hero-desc">Le plus rapide du jeu ! Double dague d'ombre, pas de l'ombre et critiques 3x dévastateurs.</div>
+        <div class="hero-perk-badge">🗡️ Lourd : Danse des Lames (Crit 3x)</div>
+        <button class="hero-select-btn" id="btn-rogue">JOUER VOLEUR [6]</button>
+      </div>
+
+      <!-- 7. ORK BERSERKER -->
+      <div class="hero-card ork" data-class="ORK" id="card-ork">
+        <div class="hero-shortcut">[7]</div>
+        <div class="hero-icon">🧌</div>
+        <div class="hero-name">Ork Berserker</div>
+        <div class="hero-title">Seigneur WAAAAGH !</div>
+        <div class="hero-stats">
+          <div class="hero-stat-row"><span>Santé (PV) :</span> <span class="hero-stat-val">210 PV ⭐⭐⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Vitesse :</span> <span class="hero-stat-val">Lente ⭐</span></div>
+          <div class="hero-stat-row"><span>Dégâts :</span> <span class="hero-stat-val">Brutaux (62 DMG) ⭐⭐⭐⭐⭐</span></div>
+        </div>
+        <div class="hero-desc">Colosse ork invincible avec le plus grand total de PV et un Kikoup' géant destructeur.</div>
+        <div class="hero-perk-badge">💥 Lourd : WAAAAGH ! Slam Sismique</div>
+        <button class="hero-select-btn" id="btn-ork">JOUER ORK [7]</button>
+      </div>
+
+      <!-- 8. FAUCHEUR SPECTRAL -->
+      <div class="hero-card reaper" data-class="REAPER" id="card-reaper">
+        <div class="hero-shortcut">[8]</div>
+        <div class="hero-icon">💀</div>
+        <div class="hero-name">Faucheur Spectral</div>
+        <div class="hero-title">Moissonneur d'Âmes</div>
+        <div class="hero-stats">
+          <div class="hero-stat-row"><span>Santé (PV) :</span> <span class="hero-stat-val">95 PV ⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Vitesse :</span> <span class="hero-stat-val">Spectrale ⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Vol de Vie :</span> <span class="hero-stat-val">25% Dégâts ⭐⭐⭐⭐⭐</span></div>
+        </div>
+        <div class="hero-desc">Faux géante fauchant à 360° et drainant la vitalité des ennemis à chaque coup !</div>
+        <div class="hero-perk-badge">🩸 Lourd : Moisson d'Âmes (+PV)</div>
+        <button class="hero-select-btn" id="btn-reaper">JOUER FAUCHEUR [8]</button>
+      </div>
+
+      <!-- 9. NÉCROMANCIEN -->
+      <div class="hero-card necromancer" data-class="NECROMANCER" id="card-necromancer">
+        <div class="hero-shortcut">[9]</div>
+        <div class="hero-icon">🧟</div>
+        <div class="hero-name">Nécromancien</div>
+        <div class="hero-title">Invocateur des Morts</div>
+        <div class="hero-stats">
+          <div class="hero-stat-row"><span>Santé (PV) :</span> <span class="hero-stat-val">90 PV ⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Invocations :</span> <span class="hero-stat-val">3 Squelettes IA ⭐⭐⭐⭐⭐</span></div>
+          <div class="hero-stat-row"><span>Portée :</span> <span class="hero-stat-val">Crânes Noirs ⭐⭐⭐⭐⭐</span></div>
+        </div>
+        <div class="hero-desc">Tire des crânes magiques et invoque une armée de serviteurs Squelettes qui combattent pour lui !</div>
+        <div class="hero-perk-badge">🧟 Lourd : Invoque 3 Squelettes</div>
+        <button class="hero-select-btn" id="btn-necromancer">JOUER NÉCROMANCIEN [9]</button>
+      </div>
     </div>
 
     <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; align-items: center;">
@@ -1139,12 +1243,12 @@
         </div>
       </div>
 
-      <!-- 1V1 CLASS SELECTOR -->
+      <!-- 1V1 CLASS SELECTOR (ALL 9 CLASSES) -->
       <div style="width: 100%; margin-top: 6px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
         <div style="font-size: 12px; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
           Choisissez votre Héros :
         </div>
-        <div class="duel-class-selector" id="duel-class-grid">
+        <div class="duel-class-selector" id="duel-class-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; max-width: 540px;">
           <div class="duel-class-chip selected" data-class="KNIGHT" id="duel-chip-knight">
             <span class="duel-chip-icon">🛡️</span>
             <div class="duel-chip-info">
@@ -1171,6 +1275,41 @@
             <div class="duel-chip-info">
               <span class="duel-chip-name">Black Templar</span>
               <span class="duel-chip-stats">180 PV • Bolter</span>
+            </div>
+          </div>
+          <div class="duel-class-chip" data-class="ANGEL" id="duel-chip-angel">
+            <span class="duel-chip-icon">👼</span>
+            <div class="duel-chip-info">
+              <span class="duel-chip-name">Ange</span>
+              <span class="duel-chip-stats">130 PV • Sacré</span>
+            </div>
+          </div>
+          <div class="duel-class-chip" data-class="ROGUE" id="duel-chip-rogue">
+            <span class="duel-chip-icon">🗡️</span>
+            <div class="duel-chip-info">
+              <span class="duel-chip-name">Voleur</span>
+              <span class="duel-chip-stats">80 PV • Crit 3x</span>
+            </div>
+          </div>
+          <div class="duel-class-chip" data-class="ORK" id="duel-chip-ork">
+            <span class="duel-chip-icon">🧌</span>
+            <div class="duel-chip-info">
+              <span class="duel-chip-name">Ork</span>
+              <span class="duel-chip-stats">210 PV • Brutal</span>
+            </div>
+          </div>
+          <div class="duel-class-chip" data-class="REAPER" id="duel-chip-reaper">
+            <span class="duel-chip-icon">💀</span>
+            <div class="duel-chip-info">
+              <span class="duel-chip-name">Faucheur</span>
+              <span class="duel-chip-stats">95 PV • Vol de Vie</span>
+            </div>
+          </div>
+          <div class="duel-class-chip" data-class="NECROMANCER" id="duel-chip-necromancer">
+            <span class="duel-chip-icon">🧟</span>
+            <div class="duel-chip-info">
+              <span class="duel-chip-name">Nécromancien</span>
+              <span class="duel-chip-stats">90 PV • Squelettes</span>
             </div>
           </div>
         </div>

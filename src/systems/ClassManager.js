@@ -1,6 +1,6 @@
 /**
  * Character Classes System for SoulBonker 3D
- * 4 Playable Classes: Chevalier, Archer, Mage, Space Marine (Black Templars)
+ * 9 Playable Classes: Chevalier, Archer, Mage, Space Marine, Ange, Voleur, Ork, Reaper, Nécromancien
  */
 
 export const CHARACTER_CLASSES = {
@@ -115,5 +115,145 @@ export const CHARACTER_CLASSES = {
       range: '⭐⭐'
     },
     desc: 'Pour l\'Empereur ! Armure énergétique ultra-lourde, épée-tronçonneuse dévastatrice et tirs de Bolter destructeurs.'
+  },
+  ANGEL: {
+    id: 'ANGEL',
+    name: 'Ange Céleste',
+    title: 'Paladin de Pure Lumière',
+    icon: '👼',
+    color: '#ffd700',
+    modelPath: 'assets/models/angel.obj',
+    mtlPath: 'assets/models/angel.mtl',
+    weaponModel: 'assets/models/angel_sword.obj',
+    weaponMtl: 'assets/models/angel_sword.mtl',
+    maxHp: 130,
+    maxStamina: 115,
+    moveSpeed: 10.6,
+    baseDamage: 42,
+    attackSpeed: 1.2,
+    knockbackMultiplier: 1.2,
+    isRanged: false,
+    weaponType: 'ANGEL_SWORD',
+    heavyName: 'Châtiment Solaire Divin',
+    dodgeType: 'WINGS_GLIDE',
+    stats: {
+      hp: '⭐⭐⭐⭐',
+      speed: '⭐⭐⭐⭐',
+      damage: '⭐⭐⭐⭐',
+      range: '⭐⭐'
+    },
+    desc: 'Archange divin. Ailes dorées lumineuses, frappes saintes éblouissantes et rayon de châtiment céleste.'
+  },
+  ROGUE: {
+    id: 'ROGUE',
+    name: 'Voleur de l\'Ombre',
+    title: 'Assassin Fantôme',
+    icon: '🗡️',
+    color: '#e0aaff',
+    modelPath: 'assets/models/rogue.obj',
+    mtlPath: 'assets/models/rogue.mtl',
+    weaponModel: 'assets/models/rogue_daggers.obj',
+    weaponMtl: 'assets/models/rogue_daggers.mtl',
+    maxHp: 80,
+    maxStamina: 140,
+    moveSpeed: 12.8,
+    baseDamage: 30,
+    attackSpeed: 1.85,
+    knockbackMultiplier: 0.6,
+    isRanged: false,
+    weaponType: 'DAGGER',
+    heavyName: 'Danse des Lames & Coup Critique (3x)',
+    dodgeType: 'SMOKE_STEP',
+    stats: {
+      hp: '⭐⭐',
+      speed: '⭐⭐⭐⭐⭐',
+      damage: '⭐⭐⭐⭐',
+      range: '⭐'
+    },
+    desc: 'Le plus rapide des héros ! Double dague d\'ombre, enchaînements supersoniques et coups critiques dévastateurs.'
+  },
+  ORK: {
+    id: 'ORK',
+    name: 'Ork Berserker',
+    title: 'Seigneur WAAAAGH !',
+    icon: '🧌',
+    color: '#44bb22',
+    modelPath: 'assets/models/ork.obj',
+    mtlPath: 'assets/models/ork.mtl',
+    weaponModel: 'assets/models/ork_choppa.obj',
+    weaponMtl: 'assets/models/ork_choppa.mtl',
+    maxHp: 210,
+    maxStamina: 75,
+    moveSpeed: 8.5,
+    baseDamage: 62,
+    attackSpeed: 0.95,
+    knockbackMultiplier: 2.2,
+    isRanged: false,
+    weaponType: 'CHOPPA',
+    heavyName: 'WAAAAGH ! Écrasement Brutal',
+    dodgeType: 'BULL_CHARGE',
+    stats: {
+      hp: '⭐⭐⭐⭐⭐',
+      speed: '⭐',
+      damage: '⭐⭐⭐⭐⭐',
+      range: '⭐'
+    },
+    desc: 'Colosse de guerre ork. Le plus grand réservoir de PV du jeu et dégâts terrifiants avec son Kikoup\' géant.'
+  },
+  REAPER: {
+    id: 'REAPER',
+    name: 'Faucheur Spectral',
+    title: 'Moissonneur d\'Âmes',
+    icon: '💀',
+    color: '#00e5ff',
+    modelPath: 'assets/models/reaper.obj',
+    mtlPath: 'assets/models/reaper.mtl',
+    weaponModel: 'assets/models/reaper_scythe.obj',
+    weaponMtl: 'assets/models/reaper_scythe.mtl',
+    maxHp: 95,
+    maxStamina: 105,
+    moveSpeed: 10.2,
+    baseDamage: 46,
+    attackSpeed: 1.1,
+    knockbackMultiplier: 1.1,
+    isRanged: false,
+    weaponType: 'SCYTHE',
+    heavyName: 'Tourbillon Moissonneur (Vol de Vie)',
+    dodgeType: 'SPECTRAL_PHASE',
+    stats: {
+      hp: '⭐⭐⭐',
+      speed: '⭐⭐⭐',
+      damage: '⭐⭐⭐⭐⭐',
+      range: '⭐⭐⭐'
+    },
+    desc: 'Incarnation de la mort. Grande Faux spectrale fauchant à 360° et absorbant la vie des ennemis touchés.'
+  },
+  NECROMANCER: {
+    id: 'NECROMANCER',
+    name: 'Nécromancien',
+    title: 'Invocateur des Morts',
+    icon: '🧟',
+    color: '#00ff66',
+    modelPath: 'assets/models/necromancer.obj',
+    mtlPath: 'assets/models/necromancer.mtl',
+    weaponModel: 'assets/models/necro_staff.obj',
+    weaponMtl: 'assets/models/necro_staff.mtl',
+    maxHp: 90,
+    maxStamina: 100,
+    moveSpeed: 9.8,
+    baseDamage: 32,
+    attackSpeed: 1.2,
+    knockbackMultiplier: 0.85,
+    isRanged: true,
+    weaponType: 'NECRO_STAFF',
+    heavyName: 'Invoque 3 Guerriers Squelettes',
+    dodgeType: 'BONE_DISSOLVE',
+    stats: {
+      hp: '⭐⭐',
+      speed: '⭐⭐⭐',
+      damage: '⭐⭐⭐⭐',
+      range: '⭐⭐⭐⭐⭐'
+    },
+    desc: 'Tire des crânes d\'âmes vertes et invoque jusqu\'à 3 serviteurs Squelettes guerriers qui attaquent pour lui !'
   }
 };

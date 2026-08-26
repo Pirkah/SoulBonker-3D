@@ -3,7 +3,8 @@ import { MathUtils } from '../utils/MathUtils.js';
 import { Weapon } from './Weapon.js';
 import { GlobalModelLoader } from '../engine/ModelLoader.js';
 import { CHARACTER_CLASSES } from '../systems/ClassManager.js';
-import { PlayerArrowProjectile, PlayerMagicOrbProjectile, PlayerBolterProjectile } from './Projectile.js';
+import { PlayerArrowProjectile, PlayerMagicOrbProjectile, PlayerBolterProjectile, PlayerHolyRayProjectile, PlayerNecroSkullProjectile } from './Projectile.js';
+import { SkeletonMinion } from './SkeletonMinion.js';
 
 export class Player {
   constructor(scene, projectilesList = null) {
@@ -118,7 +119,13 @@ export class Player {
         }
 
         if (model) {
-          const scale = classData.id === 'SPACEMARINE' ? 1.45 : (classData.id === 'ARCHER' ? 1.30 : (classData.id === 'MAGE' ? 1.32 : 1.38));
+          let scale = 1.35;
+          if (classData.id === 'SPACEMARINE' || classData.id === 'ORK') scale = 1.48;
+          else if (classData.id === 'ARCHER' || classData.id === 'ROGUE') scale = 1.30;
+          else if (classData.id === 'ANGEL') scale = 1.38;
+          else if (classData.id === 'REAPER') scale = 1.36;
+          else if (classData.id === 'MAGE' || classData.id === 'NECROMANCER') scale = 1.32;
+          
           model.scale.set(scale, scale, scale);
           model.position.set(0, 0.12, 0);
           this.modelContainer.add(model);
@@ -529,6 +536,11 @@ export class Player {
           this.projectilesList.push(orb);
           audio.playMagicCast(true);
           if (this.onProjectileSpawned) this.onProjectileSpawned('ORB', this.position, targetPos, 18, dmg, false);
+        } else if (this.currentClass.id === 'NECROMANCER') {
+          const necroSkull = new PlayerNecroSkullProjectile(this.scene, this.position, targetPos, 22, dmg);
+          this.projectilesList.push(necroSkull);
+          audio.playMagicCast(true);
+          if (this.onProjectileSpawned) this.onProjectileSpawned('NECRO_SKULL', this.position, targetPos, 22, dmg);
         }
       }
     } else {
@@ -537,7 +549,9 @@ export class Player {
       this.weapon.group.rotation.set(0.8, 0, 0.2);
 
       if (progress >= 0.25 && progress <= 0.75 && !this.hasHitCurrentAttack) {
-        this.checkWeaponHit(enemies, audio, particles, false);
+        const isRogue = (this.currentClass.id === 'ROGUE');
+        const isReaper = (this.currentClass.id === 'REAPER');
+        this.checkWeaponHit(enemies, audio, particles, false, isRogue ? 2.5 : 1.0, 1.0, isReaper);
       }
     }
 
@@ -577,7 +591,6 @@ export class Player {
 
       // Class-specific Heavy attacks
       if (this.currentClass.id === 'ARCHER' && this.projectilesList) {
-        // Multi-Arrow Barrage (3 arrows)
         for (let i = -1; i <= 1; i++) {
           const targetPos = {
             x: this.position.x + forwardX * 20 + i * 4.0,
@@ -590,7 +603,6 @@ export class Player {
         }
         particles.spawnTextPopup("🏹 PLUIE DE FLÈCHES !", this.position, '#00ff88', true);
       } else if (this.currentClass.id === 'MAGE' && this.projectilesList) {
-        // Supernova Charged Magic Orb
         const targetPos = {
           x: this.position.x + forwardX * 20,
           y: this.position.y,
@@ -603,7 +615,6 @@ export class Player {
         particles.spawnShockwave(this.position, 7.0, 0xbb44ff, 0.6);
         particles.spawnTextPopup("🔮 SUPERNOVA ARCANIQUE !", this.position, '#bb44ff', true);
       } else if (this.currentClass.id === 'SPACEMARINE') {
-        // Bolter Rocket + Chainsword Cleave
         if (this.projectilesList) {
           const targetPos = {
             x: this.position.x + forwardX * 20,
@@ -612,11 +623,42 @@ export class Player {
           };
           const bolt = new PlayerBolterProjectile(this.scene, this.position, targetPos, 30, dmg * 1.4);
           this.projectilesList.push(bolt);
-          if (this.onProjectileSpawned) this.onProjectileSpawned('ORB', this.position, targetPos, 30, dmg * 1.4, true);
+          if (this.onProjectileSpawned) this.onProjectileSpawned('BOLT', this.position, targetPos, 30, dmg * 1.4, true);
         }
         this.checkWeaponHit(enemies, audio, particles, true);
         particles.spawnShockwave(this.position, 6.0, 0xff3300, 0.5);
         particles.spawnTextPopup("⚔️ POUR L'EMPEREUR !", this.position, '#ff3300', true);
+      } else if (this.currentClass.id === 'ANGEL') {
+        if (this.projectilesList) {
+          const targetPos = {
+            x: this.position.x + forwardX * 20,
+            y: this.position.y,
+            z: this.position.z + forwardZ * 20
+          };
+          const holyRay = new PlayerHolyRayProjectile(this.scene, this.position, targetPos, 32, dmg * 1.5);
+          this.projectilesList.push(holyRay);
+          if (this.onProjectileSpawned) this.onProjectileSpawned('HOLY_RAY', this.position, targetPos, 32, dmg * 1.5, true);
+        }
+        this.checkWeaponHit(enemies, audio, particles, true);
+        particles.spawnShockwave(this.position, 6.5, 0xffea00, 0.6);
+        particles.spawnTextPopup("👼 CHÂTIMENT SACRÉ !", this.position, '#ffd700', true);
+      } else if (this.currentClass.id === 'ROGUE') {
+        this.checkWeaponHit(enemies, audio, particles, true, 3.0);
+        audio.playSwing(true);
+        particles.spawnHitSparks(this.position, forwardX, forwardZ, 12);
+        particles.spawnTextPopup("🗡️ CRITIQUE MORTEL (3X) !", this.position, '#e0aaff', true);
+      } else if (this.currentClass.id === 'ORK') {
+        this.checkWeaponHit(enemies, audio, particles, true, 1.5, 2.2);
+        audio.playGroundSlam();
+        particles.spawnShockwave(this.position, 9.0, 0x44bb22, 0.7);
+        particles.spawnTextPopup("🧌 WAAAAGH ! SLAM !", this.position, '#44bb22', true);
+      } else if (this.currentClass.id === 'REAPER') {
+        this.checkWeaponHit(enemies, audio, particles, true, 1.2, 1.0, true);
+        audio.playGroundSlam();
+        particles.spawnShockwave(this.position, 7.5, 0x00e5ff, 0.6);
+        particles.spawnTextPopup("💀 MOISSON D'ÂMES (+PV) !", this.position, '#00e5ff', true);
+      } else if (this.currentClass.id === 'NECROMANCER') {
+        this.summonSkeletonMinions(particles, audio);
       } else {
         // Knight Slam
         this.checkWeaponHit(enemies, audio, particles, true);
@@ -640,7 +682,7 @@ export class Player {
     return Math.floor(dmg);
   }
 
-  checkWeaponHit(enemies, audio, particles, isHeavy = false) {
+  checkWeaponHit(enemies, audio, particles, isHeavy = false, customCritMultiplier = 1.0, customKnockbackMultiplier = 1.0, isLifeSteal = false) {
     if (!enemies) return;
 
     const hitRange = (isHeavy ? 4.4 : 3.5) * this.weapon.rangeMultiplier;
@@ -659,15 +701,15 @@ export class Player {
         const angleDiff = Math.abs(MathUtils.angleDiff(angleToEnemy, this.rotationY));
 
         if (angleDiff <= hitAngle * 0.5) {
-          const isCrit = Math.random() < this.critChance || this.megaBonkBuff;
+          const isCrit = Math.random() < this.critChance || this.megaBonkBuff || customCritMultiplier > 1.5;
           let dmg = this.getCalculatedDamage(isHeavy);
-          if (isCrit) dmg = Math.floor(dmg * this.critMultiplier);
+          if (isCrit) dmg = Math.floor(dmg * this.critMultiplier * (customCritMultiplier > 1.5 ? customCritMultiplier / 2.0 : 1.0));
 
           const len = Math.sqrt(dx * dx + dz * dz) || 1;
           const dirX = dx / len;
           const dirZ = dz / len;
 
-          const baseKnock = (isHeavy ? 28 : 16) * this.knockbackBonus * this.knockbackModMultiplier;
+          const baseKnock = (isHeavy ? 28 : 16) * this.knockbackBonus * this.knockbackModMultiplier * customKnockbackMultiplier;
           const knockForce = this.megaBonkBuff ? baseKnock * 1.8 : baseKnock;
 
           enemy.takeDamage(dmg, dirX, dirZ, knockForce, isCrit);
@@ -678,7 +720,10 @@ export class Player {
             this.onMeleeHit(enemy, dmg, dirX, dirZ, knockForce, isCrit);
           }
 
-          if (this.vampirism > 0 && Math.random() < this.vampirism) {
+          if (isLifeSteal) {
+            const healAmount = Math.max(4, Math.floor(dmg * 0.25));
+            this.heal(healAmount, particles);
+          } else if (this.vampirism > 0 && Math.random() < this.vampirism) {
             this.heal(8, particles);
           }
 
@@ -689,6 +734,32 @@ export class Player {
 
     if (enemiesHit > 0) {
       this.hasHitCurrentAttack = true;
+    }
+  }
+
+  summonSkeletonMinions(particles = null, audio = null) {
+    if (!this.minionsList) this.minionsList = [];
+    this.minionsList = this.minionsList.filter(m => m.isAlive);
+
+    const countToSpawn = Math.min(3, 3 - this.minionsList.length);
+    for (let i = 0; i < countToSpawn; i++) {
+      const angle = (i / 3) * Math.PI * 2 + Math.random() * 0.5;
+      const spawnPos = new THREE.Vector3(
+        this.position.x + Math.cos(angle) * 2.2,
+        0,
+        this.position.z + Math.sin(angle) * 2.2
+      );
+      const minion = new SkeletonMinion(this.scene, this, spawnPos);
+      this.minionsList.push(minion);
+    }
+
+    if (audio) audio.playMagicCast(true);
+    if (particles) {
+      particles.spawnShockwave(this.position, 6.0, 0x00ff66, 0.6);
+      particles.spawnTextPopup("🧟 SQUELETTES INVOQUÉS !", this.position, '#00ff66', true);
+    }
+    if (this.onMinionsSummoned) {
+      this.onMinionsSummoned(countToSpawn, this.position);
     }
   }
 

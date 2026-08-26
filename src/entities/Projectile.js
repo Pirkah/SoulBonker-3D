@@ -376,3 +376,78 @@ export class PlayerBolterProjectile extends Projectile {
     particles.spawnHitSparks(this.position, 0, 0, 3);
   }
 }
+
+// ==========================================
+// 7. 👼 PLAYER HOLY RAY (Angel)
+// ==========================================
+export class PlayerHolyRayProjectile extends Projectile {
+  constructor(scene, startPos, targetPos, speed = 32, damage = 55) {
+    super(scene, startPos, targetPos, speed, damage, false);
+    this.radius = 1.2;
+    this.life = 2.0;
+
+    this.group.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      this.velocity.clone().normalize()
+    );
+  }
+
+  buildMesh() {
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.position.copy(this.position);
+
+    // Radiant Beam Cylinder
+    const rayGeo = new THREE.CylinderGeometry(0.18, 0.18, 1.8, 8);
+    const rayMat = new THREE.MeshBasicMaterial({ color: 0xffea00 });
+    const ray = new THREE.Mesh(rayGeo, rayMat);
+    this.group.add(ray);
+
+    // Holy Aura Ring
+    const ringGeo = new THREE.RingGeometry(0.2, 0.6, 12);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    this.group.add(ring);
+  }
+
+  update(dt, player, enemies, audio, particles) {
+    super.update(dt, player, enemies, audio, particles);
+    particles.spawnHitSparks(this.position, 0, 0, 2);
+  }
+}
+
+// ==========================================
+// 8. 🧟 PLAYER NECRO SKULL (Necromancer)
+// ==========================================
+export class PlayerNecroSkullProjectile extends Projectile {
+  constructor(scene, startPos, targetPos, speed = 20, damage = 35) {
+    super(scene, startPos, targetPos, speed, damage, false);
+    this.radius = 0.8;
+    this.life = 3.0;
+  }
+
+  buildMesh() {
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.position.copy(this.position);
+
+    // Glowing Green Skull Orb
+    const orbGeo = new THREE.SphereGeometry(0.42, 8, 8);
+    this.orbMat = new THREE.MeshBasicMaterial({ color: 0x00ff66 });
+    const orb = new THREE.Mesh(orbGeo, this.orbMat);
+    this.group.add(orb);
+
+    // Dark soul flame ring
+    const ringGeo = new THREE.RingGeometry(0.3, 0.7, 12);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x004422, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+    this.ring = new THREE.Mesh(ringGeo, ringMat);
+    this.group.add(this.ring);
+  }
+
+  update(dt, player, enemies, audio, particles) {
+    super.update(dt, player, enemies, audio, particles);
+    if (this.ring) {
+      this.ring.rotation.z += dt * 10;
+    }
+  }
+}
