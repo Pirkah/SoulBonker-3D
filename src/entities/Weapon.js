@@ -77,8 +77,9 @@ export class Weapon {
           model.position.set(0, 0.15, 0);
           model.rotation.set(0, 0, 0);
         } else if (weaponType === 'DAGGER') {
-          model.scale.set(1.12, 1.12, 1.12);
-          model.position.set(0, 0.15, 0);
+          model.scale.set(1.40, 1.40, 1.40);
+          model.position.set(0, 0.10, 0);
+          model.rotation.set(0, 0, 0);
         } else if (weaponType === 'CHOPPA') {
           model.scale.set(1.16, 1.16, 1.16);
           model.position.set(0, 0.22, 0);
