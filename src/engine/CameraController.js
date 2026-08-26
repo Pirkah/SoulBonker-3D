@@ -7,9 +7,9 @@ export class CameraController {
     this.domElement = domElement;
 
     // Camera offset from target in player-local space
-    this.distance = 15;
-    this.height = 11.5;
-    this.pitch = 0.55; // Angle looking down in radians
+    this.distance = 12.0;
+    this.height = 8.5;
+    this.pitch = 0.50; // Angle looking down in radians
     this.yaw = 0; // Horizontal orbit angle
 
     // Current smoothed position and target initialized immediately

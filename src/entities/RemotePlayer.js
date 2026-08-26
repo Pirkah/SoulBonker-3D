@@ -86,9 +86,9 @@ export class RemotePlayer {
           this.modelContainer.remove(this.modelContainer.children[0]);
         }
         if (model) {
-          const scale = classData.id === 'SPACEMARINE' ? 1.05 : (classData.id === 'ARCHER' ? 0.95 : 0.9);
+          const scale = classData.id === 'SPACEMARINE' ? 1.45 : (classData.id === 'ARCHER' ? 1.30 : (classData.id === 'MAGE' ? 1.32 : 1.38));
           model.scale.set(scale, scale, scale);
-          model.position.set(0, -0.95, 0);
+          model.position.set(0, 0.12, 0);
           this.modelContainer.add(model);
         }
       }).catch(err => console.warn('Remote model load error:', err));
