@@ -888,6 +888,60 @@
       transition: width 0.12s ease-out;
       box-shadow: 0 0 12px rgba(255, 0, 85, 0.6);
     }
+
+    /* 1V1 LOBBY CLASS CHIPS */
+    .duel-class-selector {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .duel-class-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+    }
+
+    .duel-class-chip:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .duel-class-chip.selected {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(187, 68, 255, 0.25));
+      border-color: var(--primary);
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.4);
+    }
+
+    .duel-chip-icon {
+      font-size: 24px;
+    }
+
+    .duel-chip-info {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+
+    .duel-chip-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .duel-chip-stats {
+      font-size: 10px;
+      color: #94a3b8;
+    }
   </style>
   <script src="libs/peerjs.min.js"></script>
 </head>
@@ -1082,6 +1136,48 @@
           <button class="interactive-btn" id="join-duel-btn" style="padding: 10px 20px; font-size: 14px; background: var(--accent); color: #fff; font-weight: 900;">
             REJOINDRE
           </button>
+        </div>
+      </div>
+
+      <!-- 1V1 CLASS SELECTOR -->
+      <div style="width: 100%; margin-top: 6px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <div style="font-size: 12px; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
+          Choisissez votre Héros :
+        </div>
+        <div class="duel-class-selector" id="duel-class-grid">
+          <div class="duel-class-chip selected" data-class="KNIGHT" id="duel-chip-knight">
+            <span class="duel-chip-icon">🛡️</span>
+            <div class="duel-chip-info">
+              <span class="duel-chip-name">Chevalier</span>
+              <span class="duel-chip-stats">120 PV • CàC</span>
+            </div>
+          </div>
+          <div class="duel-class-chip" data-class="ARCHER" id="duel-chip-archer">
+            <span class="duel-chip-icon">🏹</span>
+            <div class="duel-chip-info">
+              <span class="duel-chip-name">Archer</span>
+              <span class="duel-chip-stats">85 PV • Distance</span>
+            </div>
+          </div>
+          <div class="duel-class-chip" data-class="MAGE" id="duel-chip-mage">
+            <span class="duel-chip-icon">🧙</span>
+            <div class="duel-chip-info">
+              <span class="duel-chip-name">Mage</span>
+              <span class="duel-chip-stats">75 PV • Magie</span>
+            </div>
+          </div>
+          <div class="duel-class-chip" data-class="SPACEMARINE" id="duel-chip-spacemarine">
+            <span class="duel-chip-icon">⚔️</span>
+            <div class="duel-chip-info">
+              <span class="duel-chip-name">Black Templar</span>
+              <span class="duel-chip-stats">180 PV • Bolter</span>
+            </div>
+          </div>
+        </div>
+        <!-- Live Class status in lobby -->
+        <div style="display: flex; gap: 14px; justify-content: center; font-size: 12px; margin-top: 2px;">
+          <span style="color: var(--primary); font-weight: 700;" id="duel-my-class-badge">Votre Héros : 🛡️ Chevalier</span>
+          <span style="color: var(--accent); font-weight: 700;" id="duel-opp-class-badge">Adversaire : ⏳ En attente</span>
         </div>
       </div>
 

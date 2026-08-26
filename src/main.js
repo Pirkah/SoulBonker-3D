@@ -126,10 +126,25 @@ class Game {
     this.selectedClassKey = classKey;
     this.player.setClass(classData);
 
-    // Highlight card in UI
+    // Highlight card in Solo start UI
     document.querySelectorAll('.hero-card').forEach(c => c.classList.remove('selected'));
     const cardEl = document.querySelector(`.hero-card[data-class="${classKey}"]`);
     if (cardEl) cardEl.classList.add('selected');
+
+    // Highlight chip in 1v1 Lobby UI
+    document.querySelectorAll('.duel-class-chip').forEach(c => c.classList.remove('selected'));
+    const chipEl = document.querySelector(`.duel-class-chip[data-class="${classKey}"]`);
+    if (chipEl) chipEl.classList.add('selected');
+
+    const myBadge = document.getElementById('duel-my-class-badge');
+    if (myBadge) {
+      myBadge.textContent = `Votre Héros : ${classData.icon} ${classData.name}`;
+    }
+
+    // If in 1v1 network lobby/game, broadcast to opponent
+    if (this.network && this.network.isConnected) {
+      this.network.sendEvent('CLASS_SELECT', { classKey });
+    }
 
     this.particles.spawnTextPopup(`✨ ${classData.name}`, this.player.position, classData.color || '#00f0ff', true);
 
@@ -207,23 +222,50 @@ class Game {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Character Selection Cards Binding
+    // Character Selection Cards Binding (Solo & 1v1)
     const classKeys = ['KNIGHT', 'ARCHER', 'MAGE', 'SPACEMARINE'];
     classKeys.forEach((key) => {
+      // Solo Start Screen Card (Click selects the card)
       const card = document.querySelector(`.hero-card[data-class="${key}"]`);
       if (card) {
         card.addEventListener('click', (e) => {
           e.stopPropagation();
-          this.selectCharacterClass(key, true);
+          this.selectCharacterClass(key, false);
         });
       }
 
+      // Solo Start Screen Button (Click starts solo immediately)
       const btn = document.getElementById(`btn-${key.toLowerCase()}`);
       if (btn) {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          this.selectCharacterClass(key, true);
+          this.selectCharacterClass(key, false);
+          this.startGame(key);
         });
+      }
+
+      // 1v1 Lobby Class Chip
+      const chip = document.querySelector(`.duel-class-chip[data-class="${key}"]`);
+      if (chip) {
+        chip.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.selectCharacterClass(key, false);
+        });
+      }
+    });
+
+    // Keyboard numbers [1, 2, 3, 4] for class selection
+    window.addEventListener('keydown', (e) => {
+      const startModal = document.getElementById('start-modal');
+      const duelModal = document.getElementById('duel-lobby-modal');
+      const isStartOpen = startModal && startModal.style.display !== 'none';
+      const isDuelOpen = duelModal && duelModal.style.display !== 'none';
+
+      if (isStartOpen || isDuelOpen) {
+        if (e.key === '1' || e.code === 'Digit1') this.selectCharacterClass('KNIGHT', false);
+        if (e.key === '2' || e.code === 'Digit2') this.selectCharacterClass('ARCHER', false);
+        if (e.key === '3' || e.code === 'Digit3') this.selectCharacterClass('MAGE', false);
+        if (e.key === '4' || e.code === 'Digit4') this.selectCharacterClass('SPACEMARINE', false);
       }
     });
 
@@ -258,6 +300,7 @@ class Game {
         e.stopPropagation();
         document.getElementById('start-modal').style.display = 'none';
         if (duelModal) duelModal.style.display = 'flex';
+        this.selectCharacterClass(this.selectedClassKey, false);
 
         // Auto create host room by default
         this.network.createRoom().then((roomId) => {
@@ -322,9 +365,20 @@ class Game {
       if (startDuelBtn) {
         startDuelBtn.style.display = 'block';
       }
-      // If client, send our selected class immediately and listen for host start
-      if (!isHost) {
-        this.network.sendEvent('CLASS_SELECT', { classKey: this.selectedClassKey });
+      // Broadcast our selected class immediately on connection
+      this.network.sendEvent('CLASS_SELECT', { classKey: this.selectedClassKey });
+    });
+
+    this.network.on('CLASS_SELECT', (data) => {
+      const oppClass = CHARACTER_CLASSES[data.classKey];
+      if (oppClass) {
+        const oppBadge = document.getElementById('duel-opp-class-badge');
+        if (oppBadge) {
+          oppBadge.textContent = `Adversaire : ${oppClass.icon} ${oppClass.name}`;
+        }
+        if (this.duelManager.remotePlayer) {
+          this.duelManager.remotePlayer.setClass(oppClass);
+        }
       }
     });
 
