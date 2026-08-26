@@ -31,20 +31,10 @@ export class Bonkling extends Enemy {
 
     GlobalModelLoader.loadOBJWithMTL('assets/models/bonkling.obj', 'assets/models/bonkling.mtl').then((model) => {
       if (model) {
-        model.scale.set(1.0, 1.0, 1.0);
+        model.scale.set(1.15, 1.15, 1.15);
         this.modelGroup.add(model);
       }
     });
-
-    const eyeGeo = new THREE.BoxGeometry(0.12, 0.08, 0.1);
-    this.eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0022 });
-    const eyeL = new THREE.Mesh(eyeGeo, this.eyeMat);
-    eyeL.position.set(-0.18, 0.65, 0.4);
-    this.group.add(eyeL);
-
-    const eyeR = new THREE.Mesh(eyeGeo, this.eyeMat);
-    eyeR.position.set(0.18, 0.65, 0.4);
-    this.group.add(eyeR);
   }
 
   animateWalk(dt) {
