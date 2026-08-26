@@ -70,6 +70,13 @@ export class PhysicsSystem {
         entity.position.x += nx * overlap;
         entity.position.z += nz * overlap;
 
+        // Slide along pillar surface by cancelling inward velocity
+        const inward = entity.velocity.x * (-nx) + entity.velocity.z * (-nz);
+        if (inward > 0) {
+          entity.velocity.x += nx * inward;
+          entity.velocity.z += nz * inward;
+        }
+
         // High speed bounce / wall slam damage!
         const speedSq = entity.velocity.x * entity.velocity.x + entity.velocity.z * entity.velocity.z;
         if (speedSq > 100 && !entity.isPlayer) {
@@ -110,9 +117,19 @@ export class PhysicsSystem {
         const nz = entity.position.z / distFromCenter;
         entity.position.x = nx * maxRadius;
         entity.position.z = nz * maxRadius;
-        entity.velocity.x *= -0.2;
-        entity.velocity.z *= -0.2;
+
+        // Slide along boundary wall
+        const outward = entity.velocity.x * nx + entity.velocity.z * nz;
+        if (outward > 0) {
+          entity.velocity.x -= nx * outward;
+          entity.velocity.z -= nz * outward;
+        }
       }
+    }
+
+    // Sync visual 3D group position exactly with physics position
+    if (entity.group && entity.group.position) {
+      entity.group.position.copy(entity.position);
     }
   }
 

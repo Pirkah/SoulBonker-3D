@@ -431,10 +431,20 @@ export class Player {
     let perfectDodgeTriggered = false;
     for (const enemy of enemies) {
       if (enemy.isDead) continue;
+      const attackReach = (enemy.attackRange || 3.0) + 1.8;
       const distSq = MathUtils.distSq2D(this.position.x, this.position.z, enemy.position.x, enemy.position.z);
-      if (distSq <= 5.5 * 5.5 && (enemy.state === 'ATTACKING' || enemy.state === 'TELEGRAPH')) {
-        perfectDodgeTriggered = true;
-        break;
+
+      if (distSq <= attackReach * attackReach) {
+        // Precise strike timing window:
+        // 1. Telegraph is in its final 0.35s before release (the strike is about to fall)
+        const isImminentStrike = (enemy.state === 'TELEGRAPH' && (enemy.telegraphDuration - enemy.stateTimer <= 0.35));
+        // 2. Attack has just been launched (first 0.25s of active attack release frames)
+        const isActiveAttack = ((enemy.state === 'ATTACK' || enemy.state === 'ATTACKING') && enemy.stateTimer <= 0.25);
+
+        if (isImminentStrike || isActiveAttack) {
+          perfectDodgeTriggered = true;
+          break;
+        }
       }
     }
 
@@ -443,6 +453,8 @@ export class Player {
       this.isExhausted = false;
       this.megaBonkBuff = true;
       this.megaBonkTimer = 3.5;
+      this.isInvulnerable = true;
+      this.invulnerableTimer = 0.65; // Extended i-frame protection for slow-mo
       if (this.weapon) this.weapon.setGlowColor(0xffcc00);
 
       audio.playPerfectDodge();
