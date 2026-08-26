@@ -208,8 +208,8 @@ export const CHARACTER_CLASSES = {
     color: '#00e5ff',
     modelPath: 'assets/models/reaper.obj',
     mtlPath: 'assets/models/reaper.mtl',
-    weaponModel: 'assets/models/reaper_scythe.obj',
-    weaponMtl: 'assets/models/reaper_scythe.mtl',
+    weaponModel: null, // Scythe is sculpted directly in the 3D model
+    weaponMtl: null,
     maxHp: 95,
     maxStamina: 105,
     moveSpeed: 10.2,
@@ -217,7 +217,8 @@ export const CHARACTER_CLASSES = {
     attackSpeed: 1.1,
     knockbackMultiplier: 1.1,
     isRanged: false,
-    weaponType: 'SCYTHE',
+    hasIntegratedWeapon: true,
+    weaponType: 'INTEGRATED_SCYTHE',
     heavyName: 'Tourbillon Moissonneur (Vol de Vie)',
     dodgeType: 'SPECTRAL_PHASE',
     stats: {

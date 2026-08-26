@@ -309,6 +309,38 @@ export class Player {
       }
     }
 
+    // Reaper-specific Ghostly Hover & Gliding flight
+    if (this.currentClass.id === 'REAPER' && this.modelContainer) {
+      if (isMoving) {
+        this.state = 'RUN';
+        const speed = this.isExhausted ? this.moveSpeed * 0.65 : this.moveSpeed;
+        this.velocity.x = worldMoveX * speed;
+        this.velocity.z = worldMoveZ * speed;
+        this.targetRotationY = Math.atan2(worldMoveX, worldMoveZ);
+
+        const hover = Math.sin(this.animTime * 8.0);
+        this.modelContainer.position.y = 0.15 + hover * 0.08;
+        this.modelContainer.rotation.x = 0.32; // Lean forward into flight
+        this.modelContainer.rotation.z = -hover * 0.06;
+        this.modelContainer.rotation.y = 0;
+
+        if (Math.random() < 0.25) {
+          particles.spawnDustRing(this.position, 0.4);
+        }
+      } else {
+        this.state = 'IDLE';
+        this.velocity.x = 0;
+        this.velocity.z = 0;
+
+        const breath = Math.sin(this.animTime * 2.8);
+        this.modelContainer.position.y = 0.12 + breath * 0.08;
+        this.modelContainer.rotation.x = Math.sin(this.animTime * 1.6) * 0.04;
+        this.modelContainer.rotation.z = Math.sin(this.animTime * 1.2) * 0.04;
+        this.modelContainer.rotation.y = 0;
+      }
+      return;
+    }
+
     if (isMoving) {
       this.state = 'RUN';
       const speed = this.isExhausted ? this.moveSpeed * 0.65 : this.moveSpeed;
@@ -522,21 +554,33 @@ export class Player {
     this.velocity.x = rollDirX * currentSpeed;
     this.velocity.z = rollDirZ * currentSpeed;
 
-    // Somersault Flip
-    this.bodyGroup.rotation.x = progress * Math.PI * 2;
-    this.bodyGroup.position.y = tuck * 0.35;
+    if (this.currentClass.id === 'REAPER') {
+      // Spectral Phase Dash (Phasing through reality)
+      this.bodyGroup.rotation.x = 0;
+      this.bodyGroup.position.y = 0;
+      if (this.modelContainer) {
+        this.modelContainer.rotation.x = 0.65; // Horizontal phantom flight
+        this.modelContainer.position.y = 0.25;
+      }
+      if (Math.random() < 0.4 && particles) {
+        particles.spawnDustRing(this.position, 0.5);
+      }
+    } else {
+      // Somersault Flip
+      this.bodyGroup.rotation.x = progress * Math.PI * 2;
+      this.bodyGroup.position.y = tuck * 0.35;
+      const squash = 1.0 - tuck * 0.20;
+      this.bodyGroup.scale.set(squash, squash, squash);
+      this.torso.position.y = 0.95 - tuck * 0.40;
 
-    const squash = 1.0 - tuck * 0.20;
-    this.bodyGroup.scale.set(squash, squash, squash);
-    this.torso.position.y = 0.95 - tuck * 0.40;
-
-    this.torso.rotation.x = tuck * 0.60;
-    this.head.rotation.x = tuck * 0.80;
-    this.leftLeg.rotation.x = tuck * 1.5;
-    this.rightLeg.rotation.x = tuck * 1.3;
-    this.leftArm.rotation.x = -tuck * 1.3;
-    this.rightArm.rotation.x = -tuck * 1.1;
-    this.weapon.group.rotation.set(0.2, 0, -1.2 * tuck);
+      this.torso.rotation.x = tuck * 0.60;
+      this.head.rotation.x = tuck * 0.80;
+      this.leftLeg.rotation.x = tuck * 1.5;
+      this.rightLeg.rotation.x = tuck * 1.3;
+      this.leftArm.rotation.x = -tuck * 1.3;
+      this.rightArm.rotation.x = -tuck * 1.1;
+      this.weapon.group.rotation.set(0.2, 0, -1.2 * tuck);
+    }
 
     if (this.stateTimer >= dodgeDuration * 0.75) {
       this.isInvulnerable = false;
@@ -556,6 +600,10 @@ export class Player {
       this.leftArm.rotation.set(0, 0, 0);
       this.rightArm.rotation.set(0, 0, 0);
       this.weapon.group.rotation.set(0.6, 0, -0.2);
+      if (this.modelContainer) {
+        this.modelContainer.position.set(0, 0.12, 0);
+        this.modelContainer.rotation.set(0, 0, 0);
+      }
       if (particles) particles.spawnDustRing(this.position, 0.6);
     }
   }
@@ -613,14 +661,24 @@ export class Player {
         }
       }
     } else {
-      // Melee Swing
-      this.rightArm.rotation.set(0.3, progress * Math.PI * 1.5 - 1.2, 0.4);
-      this.weapon.group.rotation.set(0.8, 0, 0.2);
+      if (this.currentClass.id === 'REAPER' && this.modelContainer) {
+        // High-torque 360-degree Scythe Sweep
+        this.modelContainer.rotation.y = progress * Math.PI * 2.2 - 0.4;
+        this.modelContainer.rotation.x = Math.sin(progress * Math.PI) * 0.25;
+        this.modelContainer.position.y = 0.12 + Math.sin(progress * Math.PI) * 0.18;
 
-      if (progress >= 0.25 && progress <= 0.75 && !this.hasHitCurrentAttack) {
-        const isRogue = (this.currentClass.id === 'ROGUE');
-        const isReaper = (this.currentClass.id === 'REAPER');
-        this.checkWeaponHit(enemies, audio, particles, false, isRogue ? 2.5 : 1.0, 1.0, isReaper);
+        if (progress >= 0.20 && progress <= 0.80 && !this.hasHitCurrentAttack) {
+          this.checkWeaponHit(enemies, audio, particles, false, 1.0, 1.0, true);
+        }
+      } else {
+        // Melee Swing
+        this.rightArm.rotation.set(0.3, progress * Math.PI * 1.5 - 1.2, 0.4);
+        this.weapon.group.rotation.set(0.8, 0, 0.2);
+
+        if (progress >= 0.25 && progress <= 0.75 && !this.hasHitCurrentAttack) {
+          const isRogue = (this.currentClass.id === 'ROGUE');
+          this.checkWeaponHit(enemies, audio, particles, false, isRogue ? 2.5 : 1.0, 1.0, false);
+        }
       }
     }
 
@@ -629,6 +687,10 @@ export class Player {
       this.rightArm.rotation.set(0, 0, 0);
       this.leftArm.rotation.set(0, 0, 0);
       this.torso.rotation.set(0, 0, 0);
+      if (this.modelContainer) {
+        this.modelContainer.position.set(0, 0.12, 0);
+        this.modelContainer.rotation.set(0, 0, 0);
+      }
     }
   }
 
@@ -649,8 +711,25 @@ export class Player {
     const attackDuration = 0.52 / this.attackSpeed;
     const progress = this.stateTimer / attackDuration;
 
-    this.rightArm.rotation.set(progress * Math.PI * 2.2 - 1.4, 0, -0.2);
-    this.leftArm.rotation.set(progress * Math.PI * 2.2 - 1.4, 0, 0.2);
+    if (this.currentClass.id === 'REAPER' && this.modelContainer) {
+      if (progress < 0.40) {
+        const lift = progress / 0.40;
+        this.modelContainer.position.y = 0.12 + Math.sin(lift * Math.PI * 0.5) * 1.4;
+        this.modelContainer.rotation.x = -0.45;
+        this.modelContainer.rotation.y = lift * 0.3;
+      } else if (progress < 0.75) {
+        const slam = (progress - 0.40) / 0.35;
+        this.modelContainer.position.y = 0.12 + (1.0 - slam) * 1.4;
+        this.modelContainer.rotation.x = 0.55;
+        this.modelContainer.rotation.y = 0.3 + slam * Math.PI * 1.6;
+      } else {
+        this.modelContainer.position.y = 0.12;
+        this.modelContainer.rotation.set(0, 0, 0);
+      }
+    } else {
+      this.rightArm.rotation.set(progress * Math.PI * 2.2 - 1.4, 0, -0.2);
+      this.leftArm.rotation.set(progress * Math.PI * 2.2 - 1.4, 0, 0.2);
+    }
 
     if (progress >= 0.4 && !this.hasHitCurrentAttack) {
       this.hasHitCurrentAttack = true;

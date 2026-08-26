@@ -34,6 +34,13 @@ export class Weapon {
     }
 
     this.weaponType = weaponType;
+
+    if (!modelPath) {
+      this.group.visible = false;
+      return;
+    }
+    this.group.visible = true;
+
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
