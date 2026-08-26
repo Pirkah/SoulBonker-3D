@@ -114,7 +114,7 @@ export class CameraController {
 
     // 2. Handle Lock-On or Free Orbit
     if (this.lockOnTarget && !this.lockOnTarget.isDead) {
-      // Calculate angle between player and locked enemy
+      // Calculate distance between player and locked enemy
       const dx = this.lockOnTarget.position.x - playerPosition.x;
       const dz = this.lockOnTarget.position.z - playerPosition.z;
       const dist = Math.sqrt(dx * dx + dz * dz);
@@ -124,8 +124,8 @@ export class CameraController {
         this.lockOnTarget = null;
         if (this.lockReticle) this.lockReticle.visible = false;
       } else {
-        const targetYaw = Math.atan2(dx, dz) + Math.PI;
-        this.yaw = MathUtils.dampAngle(this.yaw, targetYaw, 3.8, dt);
+        // Keep camera yaw at 0 so controls NEVER flip or invert!
+        this.yaw = MathUtils.dampAngle(this.yaw, 0, 8.0, dt);
 
         // Smooth midpoint framing between player and locked target
         this.lookAtTarget.set(
@@ -133,6 +133,10 @@ export class CameraController {
           (playerPosition.y + this.lockOnTarget.position.y) * 0.5 + 1.2,
           (playerPosition.z + this.lockOnTarget.position.z) * 0.5
         );
+
+        // Subtle adaptive distance framing
+        const desiredDist = MathUtils.clamp(11.5 + (dist - 6.0) * 0.35, 10.0, 16.0);
+        this.distance = MathUtils.damp(this.distance, desiredDist, 4.0, dt);
 
         // Update 3D Reticle
         if (this.lockReticle) {
@@ -148,6 +152,9 @@ export class CameraController {
       if (this.lockReticle) {
         this.lockReticle.visible = false;
       }
+
+      this.distance = MathUtils.damp(this.distance, 12.0, 4.0, dt);
+      this.yaw = MathUtils.dampAngle(this.yaw, 0, 8.0, dt);
 
       this.lookAtTarget.set(
         playerPosition.x,
