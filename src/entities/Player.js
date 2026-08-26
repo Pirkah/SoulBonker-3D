@@ -113,12 +113,11 @@ export class Player {
         while (this.modelContainer.children.length > 0) {
           const c = this.modelContainer.children[0];
           this.modelContainer.remove(c);
-          if (c.geometry) c.geometry.dispose();
-          if (c.material) c.material.dispose();
         }
 
         if (model) {
-          model.scale.set(0.9, 0.9, 0.9);
+          const scale = classData.id === 'SPACEMARINE' ? 1.05 : (classData.id === 'ARCHER' ? 0.95 : 0.9);
+          model.scale.set(scale, scale, scale);
           model.position.set(0, -0.95, 0);
           this.modelContainer.add(model);
         }

@@ -10,7 +10,7 @@ export class ModelLoader {
 
   async loadOBJWithMTL(objUrl, mtlUrl = null) {
     if (this.cache.has(objUrl)) {
-      return this.cache.get(objUrl).clone();
+      return this.cache.get(objUrl).clone(true);
     }
 
     try {
@@ -35,7 +35,7 @@ export class ModelLoader {
       const text = await response.text();
       const group = this.parseOBJ(text, materials);
       this.cache.set(objUrl, group);
-      return group.clone();
+      return group.clone(true);
     } catch (e) {
       console.warn(`Could not load 3D model from ${objUrl}:`, e);
       return new THREE.Group();

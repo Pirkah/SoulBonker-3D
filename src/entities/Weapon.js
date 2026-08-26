@@ -31,8 +31,6 @@ export class Weapon {
     while (this.group.children.length > 0) {
       const c = this.group.children[0];
       this.group.remove(c);
-      if (c.geometry) c.geometry.dispose();
-      if (c.material) c.material.dispose();
     }
 
     this.weaponType = weaponType;
@@ -49,8 +47,6 @@ export class Weapon {
       while (this.modelGroup.children.length > 0) {
         const c = this.modelGroup.children[0];
         this.modelGroup.remove(c);
-        if (c.geometry) c.geometry.dispose();
-        if (c.material) c.material.dispose();
       }
 
       if (model) {
