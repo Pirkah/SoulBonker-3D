@@ -735,7 +735,161 @@
       border-color: var(--primary) !important;
       color: var(--primary) !important;
     }
+
+    /* === 1V1 DUEL MULTIPLAYER STYLES === */
+    .duel-launch-btn {
+      margin-top: 14px;
+      padding: 12px 32px;
+      font-size: 15px;
+      background: linear-gradient(135deg, #ff0055, #ff5500) !important;
+      color: #fff !important;
+      border: 1px solid rgba(255, 255, 255, 0.4) !important;
+      border-radius: 30px !important;
+      font-weight: 900;
+      letter-spacing: 1px;
+      box-shadow: 0 0 25px rgba(255, 0, 85, 0.5) !important;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .duel-launch-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 35px rgba(255, 85, 0, 0.7) !important;
+    }
+
+    .duel-lobby-card {
+      background: rgba(14, 18, 30, 0.95);
+      border: 2px solid rgba(255, 0, 85, 0.35);
+      border-radius: 18px;
+      padding: 24px 30px;
+      max-width: 580px;
+      width: 92%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 0, 85, 0.25);
+    }
+
+    .duel-tabs {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .duel-tab-btn {
+      flex: 1;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      color: #94a3b8;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .duel-tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+    }
+
+    .duel-input-group {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .duel-code-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: var(--primary);
+      text-align: center;
+      text-transform: uppercase;
+      outline: none;
+    }
+
+    .duel-code-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
+
+    .duel-status-badge {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .duel-status-badge.connected {
+      background: rgba(0, 230, 118, 0.15);
+      color: #00e676;
+      border-color: #00e676;
+    }
+
+    /* DUEL IN-GAME OPPONENT HUD */
+    #duel-hud {
+      display: none;
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 340px;
+      background: var(--bg-dark);
+      padding: 12px 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 0, 85, 0.4);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 25px rgba(255, 0, 85, 0.3);
+      z-index: 15;
+    }
+
+    #duel-opp-header {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    #duel-opp-hp-track {
+      width: 100%;
+      height: 14px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 7px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #duel-opp-hp-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #ff0055, #ff7700);
+      border-radius: 7px;
+      transition: width 0.12s ease-out;
+      box-shadow: 0 0 12px rgba(255, 0, 85, 0.6);
+    }
   </style>
+  <script src="libs/peerjs.min.js"></script>
 </head>
 <body>
   <canvas id="game-canvas"></canvas>
@@ -803,6 +957,17 @@
       <span><span class="key-badge">L / ESPACE</span> Roulade Esquive</span>
       <span><span class="key-badge">I</span> Ciblage</span>
       <span style="color: var(--primary);">🎯 Visée Auto Laptop Active</span>
+    </div>
+
+    <!-- 1V1 IN-GAME OPPONENT HUD -->
+    <div id="duel-hud">
+      <div id="duel-opp-header">
+        <span id="duel-opp-name">⚔️ ADVERSAIRE</span>
+        <span id="duel-opp-hp-text" style="color: var(--accent);">100 / 100 PV</span>
+      </div>
+      <div id="duel-opp-hp-track">
+        <div id="duel-opp-hp-fill"></div>
+      </div>
     </div>
   </div>
 
@@ -877,9 +1042,77 @@
       </div>
     </div>
 
-    <button class="interactive-btn" id="start-btn" style="padding: 14px 40px; font-size: 17px; background: var(--primary); color: #000; border: none; font-weight: 900; letter-spacing: 1px; border-radius: 30px; box-shadow: 0 0 35px rgba(0,240,255,0.65);">
-      LANCER LA PARTIE [ESPACE ou ENTRÉE]
-    </button>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; align-items: center;">
+      <button class="interactive-btn" id="start-btn" style="padding: 14px 38px; font-size: 16px; background: var(--primary); color: #000; border: none; font-weight: 900; letter-spacing: 1px; border-radius: 30px; box-shadow: 0 0 35px rgba(0,240,255,0.65);">
+        LANCER SOLO [ESPACE ou ENTRÉE]
+      </button>
+      <button class="interactive-btn duel-launch-btn" id="open-duel-btn">
+        ⚔️ DUEL 1v1 EN LIGNE (MULTIJOUEUR)
+      </button>
+    </div>
+  </div>
+
+  <!-- 1V1 MULTIPLAYER LOBBY MODAL -->
+  <div class="modal-overlay" id="duel-lobby-modal" style="display: none;">
+    <h1 class="modal-title" style="color: var(--accent); text-shadow: 0 0 25px rgba(255,0,85,0.6);">DUEL 1v1 EN LIGNE</h1>
+    <p class="modal-subtitle">Affrontez un ami en direct via WebRTC Peer-to-Peer (100% Gratuit) :</p>
+
+    <div class="duel-lobby-card">
+      <div class="duel-tabs">
+        <button class="duel-tab-btn active" id="tab-host-btn">👑 CRÉER UNE ARÈNE (HÔTE)</button>
+        <button class="duel-tab-btn" id="tab-join-btn">🎯 REJOINDRE UNE ARÈNE</button>
+      </div>
+
+      <!-- HOST SECTION -->
+      <div id="duel-host-section" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+        <div style="font-size: 13px; color: #94a3b8;">Code de votre Arène :</div>
+        <div style="font-size: 32px; font-weight: 900; letter-spacing: 4px; color: var(--primary); background: rgba(0,0,0,0.6); padding: 8px 24px; border-radius: 12px; border: 1px solid rgba(0,240,255,0.3);" id="host-room-code">
+          SB-????
+        </div>
+        <button class="interactive-btn" id="copy-duel-link-btn" style="padding: 8px 18px; font-size: 13px; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
+          📋 Copier le Code / Lien de Duel
+        </button>
+      </div>
+
+      <!-- JOIN SECTION -->
+      <div id="duel-join-section" style="width: 100%; display: none; flex-direction: column; align-items: center; gap: 12px;">
+        <div style="font-size: 13px; color: #94a3b8;">Entrez le code de l'Arène de votre ami :</div>
+        <div class="duel-input-group">
+          <input type="text" id="join-room-input" class="duel-code-input" placeholder="SB-XXXX" maxlength="7">
+          <button class="interactive-btn" id="join-duel-btn" style="padding: 10px 20px; font-size: 14px; background: var(--accent); color: #fff; font-weight: 900;">
+            REJOINDRE
+          </button>
+        </div>
+      </div>
+
+      <!-- STATUS & START -->
+      <div class="duel-status-badge" id="duel-status-text">
+        ⏳ En attente de l'adversaire...
+      </div>
+
+      <div style="display: flex; gap: 14px; margin-top: 8px; width: 100%;">
+        <button class="interactive-btn" id="back-from-duel-btn" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15);">
+          ⬅️ RETOUR SOLO
+        </button>
+        <button class="interactive-btn" id="start-duel-btn" style="flex: 2; padding: 12px; background: var(--stamina); color: #000; font-weight: 900; display: none;">
+          ⚔️ DÉMARRER LE DUEL !
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1V1 RESULT MODAL -->
+  <div class="modal-overlay" id="duel-result-modal" style="display: none;">
+    <h1 class="modal-title" id="duel-result-title" style="color: var(--gold);">👑 VICTOIRE !</h1>
+    <p class="modal-subtitle" id="duel-result-subtitle">Vous avez triomphé de votre adversaire dans l'arène !</p>
+    <div style="display: flex; gap: 16px; margin-top: 12px;">
+      <button class="interactive-btn" id="duel-rematch-btn" style="padding: 14px 32px; font-size: 16px; background: var(--primary); color: #000; font-weight: 900;">
+        ⚡ REVANCHE !
+      </button>
+      <button class="interactive-btn" id="duel-quit-btn" style="padding: 14px 24px; font-size: 16px; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
+        🚪 QUITTER LE DUEL
+      </button>
+    </div>
   </div>
 
   <!-- ROGUE-LITE UPGRADE MODAL -->

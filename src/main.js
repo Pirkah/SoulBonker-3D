@@ -12,6 +12,8 @@ import { UpgradeManager } from './systems/UpgradeManager.js';
 import { UIManager } from './systems/UIManager.js';
 import { ModMenu } from './systems/ModMenu.js';
 import { GlobalModelLoader } from './engine/ModelLoader.js';
+import { NetworkManager } from './network/NetworkManager.js';
+import { DuelManager } from './systems/DuelManager.js';
 
 import { CHARACTER_CLASSES } from './systems/ClassManager.js';
 
@@ -19,11 +21,15 @@ class Game {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
     this.gameState = 'START'; // START, PLAYING, UPGRADE, PAUSED, GAMEOVER
+    this.gameMode = 'SOLO_WAVES'; // SOLO_WAVES, DUEL_1V1
     this.selectedClassKey = 'KNIGHT';
 
     // Slow-mo / Bullet-time state
     this.timeScale = 1.0;
     this.slowMoTimer = 0;
+
+    // WebRTC 1v1 Network Manager
+    this.network = new NetworkManager();
 
     this.initEngine();
     this.initWorld();
@@ -101,6 +107,7 @@ class Game {
     this.player = new Player(this.scene, this.waveManager.projectiles);
     this.upgradeManager = new UpgradeManager();
     this.modMenu = new ModMenu(this);
+    this.duelManager = new DuelManager(this.scene, this.network, this.audio, this.particles);
 
     // Preload all 4 character class models & weapons into cache for instantaneous 0ms swapping
     Object.values(CHARACTER_CLASSES).forEach((cls) => {
@@ -134,6 +141,7 @@ class Game {
   startGame(classKey = null) {
     if (this.gameState !== 'START') return;
 
+    this.gameMode = 'SOLO_WAVES';
     if (classKey) {
       this.selectedClassKey = classKey;
     }
@@ -143,6 +151,10 @@ class Game {
 
     const startModal = document.getElementById('start-modal');
     if (startModal) startModal.style.display = 'none';
+
+    // Show Solo Wave HUD
+    const waveHud = document.querySelector('.wave-hud');
+    if (waveHud) waveHud.style.display = 'flex';
 
     // Ensure focus is on document/canvas and flush initial click buffer
     if (document.activeElement && document.activeElement.blur) {
@@ -158,6 +170,36 @@ class Game {
     this.particles.spawnTextPopup(`⚔️ ${classData.name} PRÊT !`, this.player.position, classData.color || '#00f0ff', true);
   }
 
+  start1v1Duel() {
+    this.gameMode = 'DUEL_1V1';
+    const classData = CHARACTER_CLASSES[this.selectedClassKey] || CHARACTER_CLASSES.KNIGHT;
+    this.player.setClass(classData);
+
+    const startModal = document.getElementById('start-modal');
+    if (startModal) startModal.style.display = 'none';
+
+    const duelModal = document.getElementById('duel-lobby-modal');
+    if (duelModal) duelModal.style.display = 'none';
+
+    // Hide solo HUD elements
+    const waveHud = document.querySelector('.wave-hud');
+    if (waveHud) waveHud.style.display = 'none';
+    const bossHud = document.getElementById('boss-hp-container');
+    if (bossHud) bossHud.style.display = 'none';
+
+    if (document.activeElement && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
+    window.focus();
+    this.input.flush();
+
+    this.audio.init();
+    this.audio.resume();
+    this.gameState = 'PLAYING';
+
+    this.duelManager.initDuel(this.player);
+  }
+
   initEvents() {
     window.addEventListener('resize', () => {
       this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -165,7 +207,7 @@ class Game {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Character Selection Cards Binding: Clicking directly starts game with that class!
+    // Character Selection Cards Binding
     const classKeys = ['KNIGHT', 'ARCHER', 'MAGE', 'SPACEMARINE'];
     classKeys.forEach((key) => {
       const card = document.querySelector(`.hero-card[data-class="${key}"]`);
@@ -192,6 +234,147 @@ class Game {
         e.stopPropagation();
         this.startGame(this.selectedClassKey);
       });
+    }
+
+    // === 1V1 MULTIPLAYER LOBBY EVENTS ===
+    const openDuelBtn = document.getElementById('open-duel-btn');
+    const duelModal = document.getElementById('duel-lobby-modal');
+    const tabHostBtn = document.getElementById('tab-host-btn');
+    const tabJoinBtn = document.getElementById('tab-join-btn');
+    const hostSection = document.getElementById('duel-host-section');
+    const joinSection = document.getElementById('duel-join-section');
+    const hostRoomCodeEl = document.getElementById('host-room-code');
+    const copyDuelLinkBtn = document.getElementById('copy-duel-link-btn');
+    const joinRoomInput = document.getElementById('join-room-input');
+    const joinDuelBtn = document.getElementById('join-duel-btn');
+    const duelStatusText = document.getElementById('duel-status-text');
+    const startDuelBtn = document.getElementById('start-duel-btn');
+    const backFromDuelBtn = document.getElementById('back-from-duel-btn');
+    const duelRematchBtn = document.getElementById('duel-rematch-btn');
+    const duelQuitBtn = document.getElementById('duel-quit-btn');
+
+    if (openDuelBtn) {
+      openDuelBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('start-modal').style.display = 'none';
+        if (duelModal) duelModal.style.display = 'flex';
+
+        // Auto create host room by default
+        this.network.createRoom().then((roomId) => {
+          if (hostRoomCodeEl) hostRoomCodeEl.textContent = roomId;
+        }).catch(err => {
+          if (duelStatusText) duelStatusText.textContent = `❌ Erreur : ${err.message || err}`;
+        });
+      });
+    }
+
+    if (tabHostBtn && tabJoinBtn) {
+      tabHostBtn.addEventListener('click', () => {
+        tabHostBtn.classList.add('active');
+        tabJoinBtn.classList.remove('active');
+        hostSection.style.display = 'flex';
+        joinSection.style.display = 'none';
+        if (!this.network.isHost || !this.network.roomId) {
+          this.network.createRoom().then((roomId) => {
+            if (hostRoomCodeEl) hostRoomCodeEl.textContent = roomId;
+          });
+        }
+      });
+
+      tabJoinBtn.addEventListener('click', () => {
+        tabJoinBtn.classList.add('active');
+        tabHostBtn.classList.remove('active');
+        hostSection.style.display = 'none';
+        joinSection.style.display = 'flex';
+      });
+    }
+
+    if (copyDuelLinkBtn) {
+      copyDuelLinkBtn.addEventListener('click', () => {
+        const url = `${window.location.origin}${window.location.pathname}#room=${this.network.roomId || ''}`;
+        navigator.clipboard.writeText(url).then(() => {
+          copyDuelLinkBtn.textContent = '✅ Lien Copié !';
+          setTimeout(() => { copyDuelLinkBtn.textContent = '📋 Copier le Code / Lien de Duel'; }, 2500);
+        }).catch(() => {
+          navigator.clipboard.writeText(this.network.roomId || '');
+          copyDuelLinkBtn.textContent = '✅ Code Copié !';
+          setTimeout(() => { copyDuelLinkBtn.textContent = '📋 Copier le Code / Lien de Duel'; }, 2500);
+        });
+      });
+    }
+
+    if (joinDuelBtn && joinRoomInput) {
+      joinDuelBtn.addEventListener('click', () => {
+        const code = joinRoomInput.value.trim().toUpperCase();
+        if (!code) return;
+        if (duelStatusText) duelStatusText.textContent = `🔄 Connexion à l'arène ${code}...`;
+        this.network.joinRoom(code).catch((err) => {
+          if (duelStatusText) duelStatusText.textContent = `❌ Impossible de rejoindre : ${err.message || err}`;
+        });
+      });
+    }
+
+    this.network.on('connected', ({ isHost, roomId }) => {
+      if (duelStatusText) {
+        duelStatusText.classList.add('connected');
+        duelStatusText.textContent = `🟢 Adversaire connecté ! Prêt au combat.`;
+      }
+      if (startDuelBtn) {
+        startDuelBtn.style.display = 'block';
+      }
+      // If client, send our selected class immediately and listen for host start
+      if (!isHost) {
+        this.network.sendEvent('CLASS_SELECT', { classKey: this.selectedClassKey });
+      }
+    });
+
+    this.network.on('START_DUEL', () => {
+      this.start1v1Duel();
+    });
+
+    if (startDuelBtn) {
+      startDuelBtn.addEventListener('click', () => {
+        this.network.sendEvent('START_DUEL', {});
+        this.start1v1Duel();
+      });
+    }
+
+    if (backFromDuelBtn) {
+      backFromDuelBtn.addEventListener('click', () => {
+        this.network.cleanup();
+        if (duelModal) duelModal.style.display = 'none';
+        document.getElementById('start-modal').style.display = 'flex';
+      });
+    }
+
+    if (duelRematchBtn) {
+      duelRematchBtn.addEventListener('click', () => {
+        this.duelManager.requestRematch();
+      });
+    }
+
+    if (duelQuitBtn) {
+      duelQuitBtn.addEventListener('click', () => {
+        this.network.cleanup();
+        this.duelManager.destroy();
+        document.getElementById('duel-result-modal').style.display = 'none';
+        document.getElementById('start-modal').style.display = 'flex';
+        this.gameState = 'START';
+        this.gameMode = 'SOLO_WAVES';
+      });
+    }
+
+    // Check if room hash exists in URL (e.g. #room=SB-7429)
+    if (window.location.hash.startsWith('#room=')) {
+      const hashRoom = window.location.hash.replace('#room=', '').trim().toUpperCase();
+      if (hashRoom && openDuelBtn) {
+        setTimeout(() => {
+          openDuelBtn.click();
+          if (tabJoinBtn) tabJoinBtn.click();
+          if (joinRoomInput) joinRoomInput.value = hashRoom;
+          if (joinDuelBtn) joinDuelBtn.click();
+        }, 500);
+      }
     }
 
     window.addEventListener('keydown', (e) => {
@@ -345,34 +528,72 @@ class Game {
       // Apply Mod Menu cheats & multipliers
       this.modMenu.update(dt, this.player);
 
-      // Lock-On Toggle
-      if (this.input.actions.lockOn) {
-        this.cameraController.toggleLockOn(this.waveManager.enemies, this.player.position);
-      }
+      if (this.gameMode === 'SOLO_WAVES') {
+        // Lock-On Toggle
+        if (this.input.actions.lockOn) {
+          this.cameraController.toggleLockOn(this.waveManager.enemies, this.player.position);
+        }
 
-      // Update Player
-      this.player.update(dt, this.input, this.audio, this.particles, this.waveManager.enemies, this.cameraController.yaw);
-      this.physics.updateEntity(this.player, dt, this.audio, this.particles);
+        // Update Player
+        this.player.update(dt, this.input, this.audio, this.particles, this.waveManager.enemies, this.cameraController.yaw);
+        this.physics.updateEntity(this.player, dt, this.audio, this.particles);
 
-      // Update Wave Manager & Enemies (Freeze enemy dt if Time Freeze cheat is ON!)
-      const enemyDt = this.modMenu.timeFreezeEnemies ? 0 : dt;
+        // Update Wave Manager & Enemies (Freeze enemy dt if Time Freeze cheat is ON!)
+        const enemyDt = this.modMenu.timeFreezeEnemies ? 0 : dt;
 
-      this.waveManager.update(enemyDt, this.player, this.audio, this.particles, (clearedWave) => {
-        this.startUpgradeSelection();
-      });
-
-      // Update Enemy Physics & Crowd Separation
-      for (const enemy of this.waveManager.enemies) {
-        this.physics.updateEntity(enemy, enemyDt, this.audio, this.particles);
-      }
-      this.physics.resolveEntityCollisions([this.player, ...this.waveManager.enemies]);
-
-      // Check Player Death (Skip if God mode)
-      if (this.player.state === 'DEAD' && !this.modMenu.godMode) {
-        this.gameState = 'GAMEOVER';
-        this.ui.showGameOver(this.waveManager.currentWave, this.waveManager.totalKills, () => {
-          this.restartGame();
+        this.waveManager.update(enemyDt, this.player, this.audio, this.particles, (clearedWave) => {
+          this.startUpgradeSelection();
         });
+
+        // Update Enemy Physics & Crowd Separation
+        for (const enemy of this.waveManager.enemies) {
+          this.physics.updateEntity(enemy, enemyDt, this.audio, this.particles);
+        }
+        this.physics.resolveEntityCollisions([this.player, ...this.waveManager.enemies]);
+
+        // Check Player Death (Skip if God mode)
+        if (this.player.state === 'DEAD' && !this.modMenu.godMode) {
+          this.gameState = 'GAMEOVER';
+          this.ui.showGameOver(this.waveManager.currentWave, this.waveManager.totalKills, () => {
+            this.restartGame();
+          });
+        }
+      } else if (this.gameMode === 'DUEL_1V1') {
+        const opponents = this.duelManager.remotePlayer ? [this.duelManager.remotePlayer] : [];
+
+        // Lock-On Toggle in 1v1
+        if (this.input.actions.lockOn && opponents.length > 0) {
+          this.cameraController.toggleLockOn(opponents, this.player.position);
+        }
+
+        // Update local player with opponent as target
+        this.player.update(dt, this.input, this.audio, this.particles, opponents, this.cameraController.yaw);
+        this.physics.updateEntity(this.player, dt, this.audio, this.particles);
+
+        // Update 1v1 Duel Manager (remote sync, projectiles, hp)
+        this.duelManager.update(dt, this.player);
+
+        // Check weapon hits on remote opponent
+        if (this.player.state === 'ATTACK_LIGHT' || this.player.state === 'ATTACK_HEAVY') {
+          const isHeavy = (this.player.state === 'ATTACK_HEAVY');
+          this.duelManager.checkLocalHitsOnRemote(isHeavy);
+        }
+
+        // Send reliable action events to opponent
+        if (this.input.actions.lightAttack) {
+          this.network.sendEvent('ATTACK', { isHeavy: false });
+        } else if (this.input.actions.heavyAttack) {
+          this.network.sendEvent('ATTACK', { isHeavy: true });
+        }
+
+        if (this.input.actions.dodgeRoll) {
+          this.network.sendEvent('DODGE', {});
+        }
+
+        // Resolve collision between local player and remote opponent
+        if (this.duelManager.remotePlayer) {
+          this.physics.resolveEntityCollisions([this.player, this.duelManager.remotePlayer]);
+        }
       }
     }
 
@@ -394,8 +615,16 @@ class Game {
   }
 }
 
-// Start Game Instance
-window.addEventListener('DOMContentLoaded', () => {
-  const game = new Game();
-  game.run();
-});
+// Start Game Instance safely
+function bootGame() {
+  if (!window.game) {
+    const game = new Game();
+    game.run();
+  }
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', bootGame);
+} else {
+  bootGame();
+}

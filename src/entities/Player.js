@@ -9,6 +9,7 @@ export class Player {
   constructor(scene, projectilesList = null) {
     this.scene = scene;
     this.projectilesList = projectilesList;
+    this.onProjectileSpawned = null; // Hook for 1v1 multiplayer synchronization
 
     // Character Class (Default: KNIGHT)
     this.currentClass = CHARACTER_CLASSES.KNIGHT;
@@ -521,10 +522,12 @@ export class Player {
           const arrow = new PlayerArrowProjectile(this.scene, this.position, targetPos, 26, dmg);
           this.projectilesList.push(arrow);
           particles.spawnHitSparks(this.position, forwardX, forwardZ, 6);
+          if (this.onProjectileSpawned) this.onProjectileSpawned('ARROW', this.position, targetPos, 26, dmg);
         } else if (this.currentClass.id === 'MAGE') {
           const orb = new PlayerMagicOrbProjectile(this.scene, this.position, targetPos, 18, dmg, false);
           this.projectilesList.push(orb);
           audio.playMagicCast(true);
+          if (this.onProjectileSpawned) this.onProjectileSpawned('ORB', this.position, targetPos, 18, dmg, false);
         }
       }
     } else {
@@ -582,6 +585,7 @@ export class Player {
           };
           const arrow = new PlayerArrowProjectile(this.scene, this.position, targetPos, 28, dmg * 0.85);
           this.projectilesList.push(arrow);
+          if (this.onProjectileSpawned) this.onProjectileSpawned('ARROW', this.position, targetPos, 28, dmg * 0.85);
         }
         particles.spawnTextPopup("🏹 PLUIE DE FLÈCHES !", this.position, '#00ff88', true);
       } else if (this.currentClass.id === 'MAGE' && this.projectilesList) {
@@ -593,6 +597,7 @@ export class Player {
         };
         const bigOrb = new PlayerMagicOrbProjectile(this.scene, this.position, targetPos, 16, dmg * 1.5, true);
         this.projectilesList.push(bigOrb);
+        if (this.onProjectileSpawned) this.onProjectileSpawned('ORB', this.position, targetPos, 16, dmg * 1.5, true);
         audio.playGroundSlam();
         particles.spawnShockwave(this.position, 7.0, 0xbb44ff, 0.6);
         particles.spawnTextPopup("🔮 SUPERNOVA ARCANIQUE !", this.position, '#bb44ff', true);
@@ -606,6 +611,7 @@ export class Player {
           };
           const bolt = new PlayerBolterProjectile(this.scene, this.position, targetPos, 30, dmg * 1.4);
           this.projectilesList.push(bolt);
+          if (this.onProjectileSpawned) this.onProjectileSpawned('ORB', this.position, targetPos, 30, dmg * 1.4, true);
         }
         this.checkWeaponHit(enemies, audio, particles, true);
         particles.spawnShockwave(this.position, 6.0, 0xff3300, 0.5);

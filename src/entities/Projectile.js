@@ -103,7 +103,7 @@ export class Projectile {
         if (enemy.isDead) continue;
         const distSq = MathUtils.distSq2D(this.position.x, this.position.z, enemy.position.x, enemy.position.z);
         if (distSq < (this.radius + enemy.radius) ** 2) {
-          enemy.takeDamage(this.damage, this.velocity.x * 0.3, this.velocity.z * 0.3, 12, true);
+          enemy.takeDamage(this.damage, this.velocity.x * 0.3, this.velocity.z * 0.3, 12, true, audio, particles);
           audio.playHit();
           particles.spawnHitSparks(this.position, this.velocity.x, this.velocity.z, 14, true);
           this.destroy();
