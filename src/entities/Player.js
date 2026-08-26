@@ -244,10 +244,9 @@ export class Player {
       }
     }
 
-    const sinYaw = Math.sin(camYaw);
-    const cosYaw = Math.cos(camYaw);
-    const worldMoveX = input.moveVector.x * cosYaw - input.moveVector.z * sinYaw;
-    const worldMoveZ = input.moveVector.x * sinYaw + input.moveVector.z * cosYaw;
+    // Direct Screen-Relative World Movement (Z is always Up, S is always Down, Q is Left, D is Right)
+    const worldMoveX = input.moveVector.x;
+    const worldMoveZ = input.moveVector.z;
     const isMoving = (input.moveVector.x !== 0 || input.moveVector.z !== 0);
 
     switch (this.state) {

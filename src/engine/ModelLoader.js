@@ -8,9 +8,24 @@ export class ModelLoader {
     this.cache = new Map();
   }
 
+  cloneModel(group) {
+    if (!group) return new THREE.Group();
+    const clone = group.clone(true);
+    clone.traverse((child) => {
+      if (child.isMesh && child.material) {
+        if (Array.isArray(child.material)) {
+          child.material = child.material.map((m) => m.clone());
+        } else {
+          child.material = child.material.clone();
+        }
+      }
+    });
+    return clone;
+  }
+
   async loadOBJWithMTL(objUrl, mtlUrl = null) {
     if (this.cache.has(objUrl)) {
-      return this.cache.get(objUrl).clone(true);
+      return this.cloneModel(this.cache.get(objUrl));
     }
 
     try {
@@ -35,7 +50,7 @@ export class ModelLoader {
       const text = await response.text();
       const group = this.parseOBJ(text, materials);
       this.cache.set(objUrl, group);
-      return group.clone(true);
+      return this.cloneModel(group);
     } catch (e) {
       console.warn(`Could not load 3D model from ${objUrl}:`, e);
       return new THREE.Group();
