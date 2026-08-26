@@ -99,7 +99,7 @@ class Game {
 
     this.particles = new ParticleManager(this.scene);
     this.audio = new AudioManager();
-    this.cameraController = new CameraController(this.camera, this.canvas);
+    this.cameraController = new CameraController(this.camera, this.canvas, this.scene);
     this.input = new InputManager(this.canvas, this.camera, this.arena.groundRaycastPlane, this.cameraController);
     this.ui = new UIManager(this.camera, document.body);
 
@@ -686,11 +686,11 @@ class Game {
       if (this.gameMode === 'SOLO_WAVES') {
         // Lock-On Toggle
         if (this.input.actions.lockOn) {
-          this.cameraController.toggleLockOn(this.waveManager.enemies, this.player.position);
+          this.cameraController.toggleLockOn(this.waveManager.enemies, this.player.position, this.particles);
         }
 
-        // Update Player
-        this.player.update(dt, this.input, this.audio, this.particles, this.waveManager.enemies, this.cameraController.yaw);
+        // Update Player with lock-on target
+        this.player.update(dt, this.input, this.audio, this.particles, this.waveManager.enemies, this.cameraController.yaw, this.cameraController.lockOnTarget);
         this.physics.updateEntity(this.player, dt, this.audio, this.particles);
 
         // Update Player Minions (Necromancer Skeletons)
@@ -725,11 +725,11 @@ class Game {
 
         // Lock-On Toggle in 1v1
         if (this.input.actions.lockOn && opponents.length > 0) {
-          this.cameraController.toggleLockOn(opponents, this.player.position);
+          this.cameraController.toggleLockOn(opponents, this.player.position, this.particles);
         }
 
         // Update local player with opponent as target
-        this.player.update(dt, this.input, this.audio, this.particles, opponents, this.cameraController.yaw);
+        this.player.update(dt, this.input, this.audio, this.particles, opponents, this.cameraController.yaw, this.cameraController.lockOnTarget);
         this.physics.updateEntity(this.player, dt, this.audio, this.particles);
 
         // Update local player minions in 1v1

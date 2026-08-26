@@ -2,9 +2,10 @@ import * as THREE from '../../libs/three.module.js';
 import { MathUtils } from '../utils/MathUtils.js';
 
 export class CameraController {
-  constructor(camera, domElement) {
+  constructor(camera, domElement, scene = null) {
     this.camera = camera;
     this.domElement = domElement;
+    this.scene = scene;
 
     // Camera offset from target in player-local space
     this.distance = 12.0;
@@ -23,6 +24,11 @@ export class CameraController {
 
     // Lock-on target
     this.lockOnTarget = null;
+    this.lockReticle = null;
+
+    if (this.scene) {
+      this.initReticle(this.scene);
+    }
 
     // Screen Shake / Trauma system
     this.trauma = 0; // 0 to 1
@@ -34,6 +40,32 @@ export class CameraController {
     this.targetFov = 50;
   }
 
+  initReticle(scene) {
+    this.scene = scene;
+    const group = new THREE.Group();
+
+    // Outer neon targeting ring
+    const ringGeo = new THREE.RingGeometry(0.4, 0.55, 16);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0x00f0ff,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    group.add(ring);
+
+    // Inner glowing diamond pip
+    const pipGeo = new THREE.OctahedronGeometry(0.18);
+    const pipMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+    const pip = new THREE.Mesh(pipGeo, pipMat);
+    group.add(pip);
+
+    group.visible = false;
+    this.scene.add(group);
+    this.lockReticle = group;
+  }
+
   addTrauma(amount) {
     this.trauma = MathUtils.clamp(this.trauma + amount, 0, 1);
   }
@@ -42,9 +74,11 @@ export class CameraController {
     this.lockOnTarget = target;
   }
 
-  toggleLockOn(potentialTargets, playerPos) {
+  toggleLockOn(potentialTargets, playerPos, particles = null) {
     if (this.lockOnTarget) {
       this.lockOnTarget = null;
+      if (this.lockReticle) this.lockReticle.visible = false;
+      if (particles) particles.spawnTextPopup("🔓 CIBLAGE DÉSACTIVÉ", playerPos, '#94a3b8', true);
       return null;
     }
 
@@ -57,13 +91,16 @@ export class CameraController {
     for (const enemy of potentialTargets) {
       if (enemy.isDead) continue;
       const dSq = MathUtils.distSq2D(playerPos.x, playerPos.z, enemy.position.x, enemy.position.z);
-      if (dSq < closestDistSq && dSq < 35 * 35) {
+      if (dSq < closestDistSq && dSq < 32 * 32) {
         closestDistSq = dSq;
         closest = enemy;
       }
     }
 
     this.lockOnTarget = closest;
+    if (this.lockOnTarget && particles) {
+      particles.spawnTextPopup("🎯 CIBLE VERROUILLÉE", this.lockOnTarget.position, '#00f0ff', true);
+    }
     return this.lockOnTarget;
   }
 
@@ -80,21 +117,36 @@ export class CameraController {
       // Calculate angle between player and locked enemy
       const dx = this.lockOnTarget.position.x - playerPosition.x;
       const dz = this.lockOnTarget.position.z - playerPosition.z;
-      const targetYaw = Math.atan2(dx, dz) + Math.PI;
-      this.yaw = MathUtils.damp(this.yaw, targetYaw, 5.0, dt);
+      const dist = Math.sqrt(dx * dx + dz * dz);
 
-      // Midpoint framing
-      this.lookAtTarget.set(
-        (playerPosition.x + this.lockOnTarget.position.x) * 0.5,
-        (playerPosition.y + this.lockOnTarget.position.y) * 0.5 + 1.2,
-        (playerPosition.z + this.lockOnTarget.position.z) * 0.5
-      );
+      if (dist > 34.0) {
+        // Break lock-on if distance exceeds range
+        this.lockOnTarget = null;
+        if (this.lockReticle) this.lockReticle.visible = false;
+      } else {
+        const targetYaw = Math.atan2(dx, dz) + Math.PI;
+        this.yaw = MathUtils.dampAngle(this.yaw, targetYaw, 3.8, dt);
+
+        // Smooth midpoint framing between player and locked target
+        this.lookAtTarget.set(
+          (playerPosition.x + this.lockOnTarget.position.x) * 0.5,
+          (playerPosition.y + this.lockOnTarget.position.y) * 0.5 + 1.2,
+          (playerPosition.z + this.lockOnTarget.position.z) * 0.5
+        );
+
+        // Update 3D Reticle
+        if (this.lockReticle) {
+          this.lockReticle.visible = true;
+          const targetY = (this.lockOnTarget.position.y || 0) + (this.lockOnTarget.radius ? this.lockOnTarget.radius * 1.8 : 2.2);
+          this.lockReticle.position.set(this.lockOnTarget.position.x, targetY, this.lockOnTarget.position.z);
+          this.lockReticle.rotation.z += dt * 3.5;
+          this.lockReticle.lookAt(this.camera.position);
+        }
+      }
     } else {
       this.lockOnTarget = null;
-
-      // Soft camera auto-centering when moving
-      if (inputManager && (inputManager.moveVector.x !== 0 || inputManager.moveVector.z !== 0)) {
-        // Gently follow movement orientation
+      if (this.lockReticle) {
+        this.lockReticle.visible = false;
       }
 
       this.lookAtTarget.set(

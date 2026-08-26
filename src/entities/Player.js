@@ -210,9 +210,10 @@ export class Player {
     return true;
   }
 
-  update(dt, input, audio, particles, enemies, camYaw = 0) {
+  update(dt, input, audio, particles, enemies, camYaw = 0, lockedTarget = null) {
     this.animTime += dt;
     this.stateTimer += dt;
+    this.lockedTarget = lockedTarget;
 
     if (this.infiniteStaminaBuffTimer > 0) {
       this.infiniteStaminaBuffTimer -= dt;
@@ -309,6 +310,61 @@ export class Player {
         this.startLightAttack(audio);
         return;
       }
+    }
+
+    // Lock-on Strafing and Dedicated Target-Facing Movement
+    if (this.lockedTarget && !this.lockedTarget.isDead) {
+      const dx = this.lockedTarget.position.x - this.position.x;
+      const dz = this.lockedTarget.position.z - this.position.z;
+      this.targetRotationY = Math.atan2(dx, dz);
+
+      if (isMoving) {
+        this.state = 'RUN';
+        const speed = this.isExhausted ? this.moveSpeed * 0.65 : this.moveSpeed;
+        this.velocity.x = worldMoveX * speed;
+        this.velocity.z = worldMoveZ * speed;
+
+        if (this.modelContainer) {
+          if (this.currentClass.id === 'REAPER') {
+            const hover = Math.sin(this.animTime * 8.0);
+            this.modelContainer.position.y = 0.15 + hover * 0.08;
+            this.modelContainer.rotation.x = 0.25;
+          } else if (this.currentClass.id === 'ANGEL') {
+            const wingFlap = Math.sin(this.animTime * 9.0);
+            this.modelContainer.position.y = 0.20 + wingFlap * 0.10;
+            this.modelContainer.rotation.x = 0.20;
+          }
+        } else {
+          const walkCycle = Math.sin(this.animTime * 14);
+          this.leftLeg.rotation.x = walkCycle * 0.6;
+          this.rightLeg.rotation.x = -walkCycle * 0.6;
+          this.leftArm.rotation.x = -walkCycle * 0.5;
+          this.rightArm.rotation.x = walkCycle * 0.3;
+          this.torso.position.y = 0.95 + Math.abs(walkCycle) * 0.08;
+        }
+
+        if (Math.random() < 0.1) {
+          particles.spawnDustRing(this.position, 0.4);
+        }
+      } else {
+        this.state = 'IDLE';
+        this.velocity.x = 0;
+        this.velocity.z = 0;
+
+        if (this.modelContainer) {
+          const breath = Math.sin(this.animTime * 2.8);
+          this.modelContainer.position.y = (this.currentClass.id === 'ANGEL' ? 0.16 : 0.12) + breath * 0.06;
+          this.modelContainer.rotation.set(0, 0, 0);
+        } else {
+          const breath = Math.sin(this.animTime * 3);
+          this.torso.position.y = 0.95 + breath * 0.02;
+          this.leftLeg.rotation.set(0, 0, 0);
+          this.rightLeg.rotation.set(0, 0, 0);
+          this.leftArm.rotation.set(0, 0, 0.1);
+          this.rightArm.rotation.set(0, 0, -0.1);
+        }
+      }
+      return;
     }
 
     // Reaper-specific Ghostly Hover & Gliding flight
@@ -411,6 +467,15 @@ export class Player {
   }
 
   aimTowardsTargetOrMouse(input, enemies, isMoving, worldMoveX, worldMoveZ) {
+    // 0. ACTIVE LOCK-ON TARGET (SOULS-LIKE DEDICATED LOCK)
+    if (this.lockedTarget && !this.lockedTarget.isDead) {
+      const dx = this.lockedTarget.position.x - this.position.x;
+      const dz = this.lockedTarget.position.z - this.position.z;
+      this.targetRotationY = Math.atan2(dx, dz);
+      this.rotationY = this.targetRotationY;
+      return;
+    }
+
     // 1. 1V1 DUEL MODE: Lock onto duel opponent if active
     if (this.duelOpponent && !this.duelOpponent.isDead) {
       const dx = this.duelOpponent.position.x - this.position.x;
@@ -501,8 +566,8 @@ export class Player {
     this.stateTimer = 0;
     this.isInvulnerable = true;
 
-    let rollX = isMoving ? worldMoveX : Math.sin(this.targetRotationY);
-    let rollZ = isMoving ? worldMoveZ : Math.cos(this.targetRotationY);
+    let rollX = isMoving ? worldMoveX : (this.lockedTarget && !this.lockedTarget.isDead ? -Math.sin(this.targetRotationY) : Math.sin(this.targetRotationY));
+    let rollZ = isMoving ? worldMoveZ : (this.lockedTarget && !this.lockedTarget.isDead ? -Math.cos(this.targetRotationY) : Math.cos(this.targetRotationY));
 
     this.targetRotationY = Math.atan2(rollX, rollZ);
     this.rotationY = this.targetRotationY;
