@@ -327,6 +327,7 @@ export class TouchControls {
 
   resetSingleFrameActions() {
     this.actions.lightAttack = false;
+    this.actions.heavyAttack = false;
     this.actions.dodge = false;
     this.actions.lockOn = false;
     this.actions.pause = false;

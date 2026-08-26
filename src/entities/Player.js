@@ -296,6 +296,7 @@ export class Player {
     }
 
     if (input.actions.heavyAttack && this.useStamina(35)) {
+      input.actions.heavyAttack = false;
       this.aimTowardsTargetOrMouse(input, enemies, isMoving, worldMoveX, worldMoveZ);
       this.startHeavyAttack(audio);
       return;
@@ -303,6 +304,7 @@ export class Player {
 
     if (input.actions.lightAttack) {
       if (this.useStamina(15)) {
+        input.actions.lightAttack = false;
         this.aimTowardsTargetOrMouse(input, enemies, isMoving, worldMoveX, worldMoveZ);
         this.startLightAttack(audio);
         return;
@@ -853,6 +855,10 @@ export class Player {
       this.rightArm.rotation.set(0, 0, 0);
       this.leftArm.rotation.set(0, 0, 0);
       this.torso.rotation.set(0, 0, 0);
+      if (this.modelContainer) {
+        this.modelContainer.position.set(0, 0.12, 0);
+        this.modelContainer.rotation.set(0, 0, 0);
+      }
     }
   }
 

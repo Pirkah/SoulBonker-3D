@@ -91,9 +91,11 @@ export class InputManager {
 
     // Heavy Attack Charge & Trigger: K or E or C
     if (code === 'KeyK' || code === 'KeyE' || code === 'KeyC' || key === 'k' || key === 'e' || key === 'c') {
-      this.isChargingHeavy = true;
-      this.actions.heavyAttack = true;
-      this.actions.startOrRestart = true;
+      if (!e.repeat) {
+        this.isChargingHeavy = true;
+        this.actions.heavyAttack = true;
+        this.actions.startOrRestart = true;
+      }
     }
 
     // Lock On: I or R or Tab
@@ -139,10 +141,7 @@ export class InputManager {
 
     // Heavy Attack Release
     if (code === 'KeyK' || code === 'KeyE' || code === 'KeyC' || key === 'k' || key === 'e' || key === 'c') {
-      if (this.isChargingHeavy) {
-        this.actions.heavyAttack = true;
-        this.isChargingHeavy = false;
-      }
+      this.isChargingHeavy = false;
     }
   }
 
@@ -167,10 +166,7 @@ export class InputManager {
       return;
     }
     if (e.button === 2) {
-      if (this.isChargingHeavy) {
-        this.actions.heavyAttack = true;
-        this.isChargingHeavy = false;
-      }
+      this.isChargingHeavy = false;
     }
   }
 
