@@ -62,8 +62,9 @@ export class Weapon {
           model.position.set(0, 0.10, 0);
           model.rotation.set(0, 0, 0);
         } else if (weaponType === 'STAFF') {
-          model.scale.set(1.15, 1.15, 1.15);
+          model.scale.set(1.40, 1.40, 1.40);
           model.position.set(0, 0.15, 0);
+          model.rotation.set(0, 0, 0);
         } else if (weaponType === 'CHAINSWORD') {
           model.scale.set(1.18, 1.18, 1.18);
           model.position.set(0, 0.28, 0);
@@ -96,15 +97,6 @@ export class Weapon {
         this.modelGroup.add(model);
       }
     }).catch(err => console.warn('Could not load weapon model:', err));
-
-    // Optional Glowing Rune Gem at the Tip (for Mage staff only)
-    if (weaponType === 'STAFF') {
-      const runeGeo = new THREE.OctahedronGeometry(0.14);
-      this.runeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-      this.rune = new THREE.Mesh(runeGeo, this.runeMat);
-      this.rune.position.y = 2.4;
-      this.group.add(this.rune);
-    }
 
     // Initial position & orientation inside the hand
     this.group.position.set(0, 0, 0);
