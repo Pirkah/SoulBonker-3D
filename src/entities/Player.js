@@ -10,6 +10,7 @@ export class Player {
     this.scene = scene;
     this.projectilesList = projectilesList;
     this.onProjectileSpawned = null; // Hook for 1v1 multiplayer synchronization
+    this.onMeleeHit = null; // Hook for 1v1 multiplayer weapon hits
 
     // Character Class (Default: KNIGHT)
     this.currentClass = CHARACTER_CLASSES.KNIGHT;
@@ -673,6 +674,10 @@ export class Player {
           audio.playHit();
           particles.spawnHitSparks(enemy.position, dirX, dirZ, isCrit ? 16 : 8, isCrit);
 
+          if (this.onMeleeHit) {
+            this.onMeleeHit(enemy, dmg, dirX, dirZ, knockForce, isCrit);
+          }
+
           if (this.vampirism > 0 && Math.random() < this.vampirism) {
             this.heal(8, particles);
           }
@@ -680,6 +685,10 @@ export class Player {
           enemiesHit++;
         }
       }
+    }
+
+    if (enemiesHit > 0) {
+      this.hasHitCurrentAttack = true;
     }
   }
 

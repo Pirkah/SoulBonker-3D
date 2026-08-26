@@ -121,6 +121,10 @@ export class RemotePlayer {
     }
     if (data.hp !== undefined) {
       this.hp = data.hp;
+      if (this.hp <= 0 && !this.isDead) {
+        this.isDead = true;
+        this.state = 'DEAD';
+      }
     }
     if (data.state && this.state !== data.state) {
       this.state = data.state;
@@ -145,7 +149,6 @@ export class RemotePlayer {
   }
 
   takeDamage(amount, normX, normZ, force = 10, isCrit = false, audio = null, particles = null) {
-    this.hp = Math.max(0, this.hp - amount);
     this.velocity.x = normX * force;
     this.velocity.z = normZ * force;
     this.velocity.y = force * 0.35;
@@ -154,12 +157,6 @@ export class RemotePlayer {
     if (particles) {
       particles.spawnHitSparks(this.position, normX, normZ, isCrit ? 16 : 8, isCrit);
       particles.spawnTextPopup(`-${Math.ceil(amount)}`, this.position, isCrit ? '#ffd700' : '#ff3366', isCrit);
-    }
-
-    if (this.hp <= 0) {
-      this.isDead = true;
-      this.state = 'DEAD';
-      if (audio) audio.playDeath();
     }
   }
 

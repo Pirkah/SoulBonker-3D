@@ -573,12 +573,6 @@ class Game {
         // Update 1v1 Duel Manager (remote sync, projectiles, hp)
         this.duelManager.update(dt, this.player);
 
-        // Check weapon hits on remote opponent
-        if (this.player.state === 'ATTACK_LIGHT' || this.player.state === 'ATTACK_HEAVY') {
-          const isHeavy = (this.player.state === 'ATTACK_HEAVY');
-          this.duelManager.checkLocalHitsOnRemote(isHeavy);
-        }
-
         // Send reliable action events to opponent
         if (this.input.actions.lightAttack) {
           this.network.sendEvent('ATTACK', { isHeavy: false });

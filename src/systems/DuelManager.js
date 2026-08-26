@@ -20,9 +20,8 @@ export class DuelManager {
   }
 
   setupNetworkListeners() {
-    this.net.on('HANDSHAKE', (data) => {
+    this.net.on('HANDSHAKE', () => {
       if (this.localPlayer) {
-        // Send our chosen class
         this.net.sendEvent('CLASS_SELECT', {
           classKey: this.localPlayer.currentClass.id
         });
@@ -40,6 +39,12 @@ export class DuelManager {
       if (this.remotePlayer) {
         this.remotePlayer.applyNetworkState(stateData);
         this.updateHUD();
+
+        // If opponent's authoritative HP is 0 and we are fighting, we won!
+        if (this.matchState === 'FIGHTING' && stateData.hp !== undefined && stateData.hp <= 0) {
+          this.matchState = 'OVER';
+          this.showResult(true);
+        }
       }
     });
 
@@ -59,20 +64,52 @@ export class DuelManager {
       this.spawnRemoteProjectile(data);
     });
 
+    // Authoritative incoming damage handler
     this.net.on('HIT', (data) => {
-      if (this.localPlayer && !this.localPlayer.isInvulnerable) {
+      if (!this.localPlayer || this.matchState !== 'FIGHTING') return;
+
+      if (!this.localPlayer.isInvulnerable && this.localPlayer.state !== 'DEAD') {
         this.localPlayer.takeDamage(data.damage, this.audio, this.particles);
+
         if (data.knock) {
           this.localPlayer.velocity.x += data.knock[0];
           this.localPlayer.velocity.z += data.knock[1];
+        }
+
+        // Broadcast updated state immediately so attacker's HUD updates
+        this.net.sendState({
+          pos: [this.localPlayer.position.x, this.localPlayer.position.y, this.localPlayer.position.z],
+          rot: this.localPlayer.rotationY,
+          vel: [this.localPlayer.velocity.x, this.localPlayer.velocity.z],
+          state: this.localPlayer.state,
+          hp: this.localPlayer.hp,
+          classKey: this.localPlayer.currentClass.id
+        });
+
+        // Check if local player died
+        if (this.localPlayer.hp <= 0) {
+          this.matchState = 'OVER';
+          this.net.sendEvent('MATCH_OVER', { winner: 'OPPONENT' });
+          this.showResult(false); // Defeat for local player
+        }
+      }
+    });
+
+    this.net.on('MATCH_OVER', (data) => {
+      if (this.matchState === 'FIGHTING') {
+        this.matchState = 'OVER';
+        if (data.winner === 'OPPONENT') {
+          this.showResult(true); // Opponent surrendered / died
+        } else {
+          this.showResult(false);
         }
       }
     });
 
     this.net.on('REMATCH_REQUEST', () => {
       this.particles.spawnTextPopup("⚡ L'ADVERSAIRE DEMANDE UNE REVANCHE !", this.remotePlayer?.position || {x:0, y:0, z:0}, '#00f0ff', true);
-      const rematchBanner = document.getElementById('duel-rematch-btn');
-      if (rematchBanner) rematchBanner.classList.add('pulse');
+      const rematchBtn = document.getElementById('duel-rematch-btn');
+      if (rematchBtn) rematchBtn.style.boxShadow = '0 0 35px rgba(0, 240, 255, 0.9)';
     });
 
     this.net.on('REMATCH_START', () => {
@@ -90,6 +127,7 @@ export class DuelManager {
 
   startDuel(localPlayer) {
     this.localPlayer = localPlayer;
+    this.localPlayer.isInvulnerable = false;
     this.isActive = true;
     this.matchState = 'FIGHTING';
 
@@ -119,7 +157,9 @@ export class DuelManager {
     this.projectiles.forEach(p => p.destroy());
     this.projectiles = [];
 
+    // Hook local player projectile and melee hit callbacks
     this.localPlayer.setProjectilesList(this.projectiles);
+
     this.localPlayer.onProjectileSpawned = (type, startPos, targetPos, speed, damage) => {
       this.net.sendEvent('PROJECTILE', {
         type,
@@ -130,7 +170,19 @@ export class DuelManager {
       });
     };
 
-    // Notify opponent
+    // Single Authoritative Melee Hit Hook (Runs exactly ONCE per swing)
+    this.localPlayer.onMeleeHit = (target, dmg, dirX, dirZ, knockForce, isCrit) => {
+      if (this.matchState !== 'FIGHTING' || !this.remotePlayer || this.remotePlayer.isDead) return;
+
+      // Send single hit packet to opponent
+      this.net.sendEvent('HIT', {
+        damage: dmg,
+        isCrit,
+        knock: [dirX * knockForce, dirZ * knockForce]
+      });
+    };
+
+    // Notify opponent of our selected class
     this.net.sendEvent('CLASS_SELECT', {
       classKey: this.localPlayer.currentClass.id
     });
@@ -163,43 +215,6 @@ export class DuelManager {
     }
   }
 
-  checkLocalHitsOnRemote(isHeavy = false) {
-    if (!this.remotePlayer || this.remotePlayer.isDead || !this.isActive) return;
-
-    const dx = this.remotePlayer.position.x - this.localPlayer.position.x;
-    const dz = this.remotePlayer.position.z - this.localPlayer.position.z;
-    const distSq = dx * dx + dz * dz;
-
-    const hitRange = (isHeavy ? 3.8 : 2.8) * (this.localPlayer.weapon?.rangeMultiplier || 1.0);
-
-    if (distSq <= hitRange * hitRange) {
-      const angleToOpp = Math.atan2(dx, dz);
-      const angleDiff = Math.abs(MathUtils.angleDiff(angleToOpp, this.localPlayer.rotationY));
-
-      if (angleDiff <= (isHeavy ? 2.4 : 1.8) * 0.5) {
-        const isCrit = Math.random() < this.localPlayer.critChance || this.localPlayer.megaBonkBuff;
-        let dmg = this.localPlayer.getCalculatedDamage(isHeavy);
-        if (isCrit) dmg = Math.floor(dmg * this.localPlayer.critMultiplier);
-
-        const len = Math.sqrt(distSq) || 1;
-        const dirX = dx / len;
-        const dirZ = dz / len;
-        const knockForce = (isHeavy ? 24 : 14) * this.localPlayer.knockbackBonus;
-
-        this.remotePlayer.takeDamage(dmg, dirX, dirZ, knockForce, isCrit, this.audio, this.particles);
-
-        // Send reliable HIT packet to opponent
-        this.net.sendEvent('HIT', {
-          damage: dmg,
-          isCrit,
-          knock: [dirX * knockForce, dirZ * knockForce]
-        });
-
-        this.updateHUD();
-      }
-    }
-  }
-
   update(dt, player) {
     if (!this.isActive) return;
 
@@ -229,15 +244,11 @@ export class DuelManager {
 
     this.updateHUD();
 
-    // Check Round Winner
-    if (this.matchState === 'FIGHTING') {
-      if (player.hp <= 0) {
-        this.matchState = 'OVER';
-        this.showResult(false); // Defeat
-      } else if (this.remotePlayer && this.remotePlayer.hp <= 0) {
-        this.matchState = 'OVER';
-        this.showResult(true); // Victory!
-      }
+    // Check if local player HP reached 0
+    if (this.matchState === 'FIGHTING' && player.hp <= 0) {
+      this.matchState = 'OVER';
+      this.net.sendEvent('MATCH_OVER', { winner: 'OPPONENT' });
+      this.showResult(false); // Defeat
     }
   }
 
@@ -266,6 +277,14 @@ export class DuelManager {
   }
 
   showResult(isVictory) {
+    this.matchState = 'OVER';
+    if (this.localPlayer) {
+      this.localPlayer.isInvulnerable = true;
+      if (!isVictory) {
+        this.localPlayer.state = 'DEAD';
+      }
+    }
+
     const resultModal = document.getElementById('duel-result-modal');
     const titleEl = document.getElementById('duel-result-title');
     const subEl = document.getElementById('duel-result-subtitle');
@@ -294,7 +313,7 @@ export class DuelManager {
     this.net.sendEvent('REMATCH_REQUEST');
     this.particles.spawnTextPopup("⚡ DEMANDE DE REVANCHE ENVOYÉE !", this.localPlayer?.position || {x:0, y:0, z:0}, '#ffd700', true);
 
-    // If host, trigger start after 1s
+    // If host, trigger start after 0.5s
     if (this.net.isHost) {
       setTimeout(() => {
         this.net.sendEvent('REMATCH_START');
