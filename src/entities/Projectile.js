@@ -505,9 +505,13 @@ export class ToxicPuddleProjectile extends Projectile {
         this.puddleMesh.material.opacity = Math.min(0.65, this.puddleTimer / 2.0);
       }
 
-      const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
-      if (distSq <= 2.2 * 2.2 && !player.isInvulnerable) {
-        player.takeDamage(this.damage * dt * 2.5, audio, particles);
+      this.damageTickTimer = (this.damageTickTimer || 0) + dt;
+      if (this.damageTickTimer >= 0.5) {
+        this.damageTickTimer = 0;
+        const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+        if (distSq <= 2.5 * 2.5 && !player.isInvulnerable) {
+          player.takeDamage(12, audio, particles, true);
+        }
       }
 
       if (this.puddleTimer <= 0) {

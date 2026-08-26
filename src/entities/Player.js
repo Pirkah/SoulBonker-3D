@@ -55,6 +55,7 @@ export class Player {
     this.state = 'IDLE';
     this.stateTimer = 0;
     this.isInvulnerable = false;
+    this.invulnerableTimer = 0; // Post-damage i-frames to prevent 60fps instant melting
 
     // Combat Combo State
     this.comboIndex = 0;
@@ -279,6 +280,16 @@ export class Player {
     this.rotationY = MathUtils.dampAngle(this.rotationY, this.targetRotationY, 14.0, dt);
     this.group.position.copy(this.position);
     this.group.rotation.y = this.rotationY;
+
+    // Post-damage immunity visual blinking
+    if (this.invulnerableTimer > 0) {
+      this.invulnerableTimer -= dt;
+      if (this.characterModelGroup) {
+        this.characterModelGroup.visible = Math.floor(this.invulnerableTimer * 24) % 2 === 0;
+      }
+    } else if (this.characterModelGroup && !this.characterModelGroup.visible) {
+      this.characterModelGroup.visible = true;
+    }
 
     const isAttacking = (this.state === 'ATTACK_LIGHT' || this.state === 'ATTACK_HEAVY');
     this.weapon.update(dt, isAttacking, this.scene);
@@ -763,20 +774,23 @@ export class Player {
     }
   }
 
-  takeDamage(amount, audio, particles) {
-    if (this.isInvulnerable || this.state === 'DEAD') return;
+  takeDamage(amount, audio = null, particles = null, isContinuous = false) {
+    if (this.isInvulnerable || this.invulnerableTimer > 0 || this.state === 'DEAD') return;
 
-    this.hp -= amount;
+    this.hp = Math.max(0, this.hp - Math.max(1, amount));
     this.state = 'HURT';
     this.stateTimer = 0;
+    this.invulnerableTimer = isContinuous ? 0.35 : 0.45; // 0.45s invulnerability window prevents 60fps instant melting
 
-    audio.playPlayerHurt();
-    particles.spawnTextPopup(`-${Math.ceil(amount)}`, this.position, '#ff2255', false);
+    if (audio && audio.playPlayerHurt) audio.playPlayerHurt();
+    if (particles && particles.spawnTextPopup) {
+      particles.spawnTextPopup(`-${Math.ceil(amount)}`, this.position, '#ff2255', false);
+    }
 
     if (this.hp <= 0) {
       this.hp = 0;
       this.state = 'DEAD';
-      audio.playDeath();
+      if (audio && audio.playDeath) audio.playDeath();
     }
   }
 

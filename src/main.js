@@ -550,14 +550,15 @@ class Game {
 
   restartGame() {
     this.waveManager.enemies.forEach(e => e.destroy());
-    this.waveManager.enemies = [];
+    this.waveManager.enemies.length = 0;
     this.waveManager.projectiles.forEach(p => p.destroy());
-    this.waveManager.projectiles = [];
+    this.waveManager.projectiles.length = 0;
     this.waveManager.totalKills = 0;
 
-    // Reset Player according to selected class
+    // Reset Player according to selected class and reconnect projectile reference
     const classData = CHARACTER_CLASSES[this.selectedClassKey] || CHARACTER_CLASSES.KNIGHT;
     this.player.setClass(classData);
+    this.player.setProjectilesList(this.waveManager.projectiles);
     this.player.thunderChain = 0;
     this.player.vampirism = 0;
     this.player.ghostDash = false;
