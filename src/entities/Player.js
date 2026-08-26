@@ -460,27 +460,42 @@ export class Player {
   }
 
   handleDodge(dt, audio, particles, enemies) {
-    const dodgeDuration = 0.44;
+    const dodgeDuration = 0.42;
     const progress = Math.min(1.0, this.stateTimer / dodgeDuration);
     const tuck = Math.sin(progress * Math.PI);
 
+    // Maintain continuous smooth forward roll momentum throughout the entire animation
+    const rollDirX = Math.sin(this.targetRotationY);
+    const rollDirZ = Math.cos(this.targetRotationY);
+    const baseDodgeSpeed = (this.currentClass.id === 'ARCHER' ? 19.0 : (this.currentClass.id === 'SPACEMARINE' ? 14.5 : 16.5));
+
+    let currentSpeed;
+    if (progress < 0.70) {
+      currentSpeed = baseDodgeSpeed * (1.0 - progress * 0.15);
+    } else {
+      const exitProgress = (progress - 0.70) / 0.30;
+      currentSpeed = (baseDodgeSpeed * 0.895) * (1.0 - exitProgress) + (this.moveSpeed) * exitProgress;
+    }
+    this.velocity.x = rollDirX * currentSpeed;
+    this.velocity.z = rollDirZ * currentSpeed;
+
     // Somersault Flip
     this.bodyGroup.rotation.x = progress * Math.PI * 2;
-    this.bodyGroup.position.y = tuck * 0.38;
+    this.bodyGroup.position.y = tuck * 0.35;
 
-    const squash = 1.0 - tuck * 0.22;
+    const squash = 1.0 - tuck * 0.20;
     this.bodyGroup.scale.set(squash, squash, squash);
-    this.torso.position.y = 0.95 - tuck * 0.45;
+    this.torso.position.y = 0.95 - tuck * 0.40;
 
-    this.torso.rotation.x = tuck * 0.65;
-    this.head.rotation.x = tuck * 0.85;
-    this.leftLeg.rotation.x = tuck * 1.6;
-    this.rightLeg.rotation.x = tuck * 1.4;
-    this.leftArm.rotation.x = -tuck * 1.4;
-    this.rightArm.rotation.x = -tuck * 1.2;
+    this.torso.rotation.x = tuck * 0.60;
+    this.head.rotation.x = tuck * 0.80;
+    this.leftLeg.rotation.x = tuck * 1.5;
+    this.rightLeg.rotation.x = tuck * 1.3;
+    this.leftArm.rotation.x = -tuck * 1.3;
+    this.rightArm.rotation.x = -tuck * 1.1;
     this.weapon.group.rotation.set(0.2, 0, -1.2 * tuck);
 
-    if (this.stateTimer >= dodgeDuration * 0.65) {
+    if (this.stateTimer >= dodgeDuration * 0.75) {
       this.isInvulnerable = false;
     }
 
@@ -498,7 +513,7 @@ export class Player {
       this.leftArm.rotation.set(0, 0, 0);
       this.rightArm.rotation.set(0, 0, 0);
       this.weapon.group.rotation.set(0.6, 0, -0.2);
-      particles.spawnDustRing(this.position, 0.6);
+      if (particles) particles.spawnDustRing(this.position, 0.6);
     }
   }
 
