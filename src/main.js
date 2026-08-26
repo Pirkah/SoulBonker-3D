@@ -100,7 +100,7 @@ class Game {
     this.particles = new ParticleManager(this.scene);
     this.audio = new AudioManager();
     this.cameraController = new CameraController(this.camera, this.canvas);
-    this.input = new InputManager(this.canvas, this.camera, this.arena.groundRaycastPlane);
+    this.input = new InputManager(this.canvas, this.camera, this.arena.groundRaycastPlane, this.cameraController);
     this.ui = new UIManager(this.camera, document.body);
 
     this.waveManager = new WaveManager(this.scene, 30);
@@ -231,6 +231,11 @@ class Game {
     this.audio.init();
     this.audio.resume();
     this.gameState = 'PLAYING';
+
+    if (this.input && this.input.touchControls && this.input.touchControls.isTouchDevice()) {
+      this.input.touchControls.show();
+    }
+
     this.waveManager.startWave(1);
     this.particles.spawnTextPopup(`⚔️ ${classData.name} PRÊT !`, this.player.position, classData.color || '#00f0ff', true);
   }
@@ -245,6 +250,10 @@ class Game {
 
     const duelModal = document.getElementById('duel-lobby-modal');
     if (duelModal) duelModal.style.display = 'none';
+
+    if (this.input && this.input.touchControls && this.input.touchControls.isTouchDevice()) {
+      this.input.touchControls.show();
+    }
 
     // Hide solo HUD elements
     const waveHud = document.querySelector('.wave-hud');
@@ -395,16 +404,46 @@ class Game {
       });
     }
 
+    // Fullscreen Toggle (Mobile & Desktop)
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        }
+      });
+    }
+
     if (copyDuelLinkBtn) {
-      copyDuelLinkBtn.addEventListener('click', () => {
+      copyDuelLinkBtn.addEventListener('click', async () => {
         const url = `${window.location.origin}${window.location.pathname}#room=${this.network.roomId || ''}`;
+        const shareData = {
+          title: 'SoulBonker 3D - Duel 1v1',
+          text: `⚔️ Rejoins mon duel 1v1 sur SoulBonker 3D dans le Colisée Romain ! Code de salle : ${this.network.roomId || ''}`,
+          url: url
+        };
+
+        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+          try {
+            await navigator.share(shareData);
+            copyDuelLinkBtn.textContent = '✅ Lien Partagé !';
+            setTimeout(() => { copyDuelLinkBtn.textContent = '📋 Partager / Copier le Lien de Duel'; }, 2500);
+            return;
+          } catch (e) {
+            // Share cancelled or unavailable, fallback to clipboard
+          }
+        }
+
         navigator.clipboard.writeText(url).then(() => {
           copyDuelLinkBtn.textContent = '✅ Lien Copié !';
-          setTimeout(() => { copyDuelLinkBtn.textContent = '📋 Copier le Code / Lien de Duel'; }, 2500);
+          setTimeout(() => { copyDuelLinkBtn.textContent = '📋 Partager / Copier le Lien de Duel'; }, 2500);
         }).catch(() => {
           navigator.clipboard.writeText(this.network.roomId || '');
           copyDuelLinkBtn.textContent = '✅ Code Copié !';
-          setTimeout(() => { copyDuelLinkBtn.textContent = '📋 Copier le Code / Lien de Duel'; }, 2500);
+          setTimeout(() => { copyDuelLinkBtn.textContent = '📋 Partager / Copier le Lien de Duel'; }, 2500);
         });
       });
     }

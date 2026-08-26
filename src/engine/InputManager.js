@@ -1,17 +1,18 @@
-/**
- * Input Manager for SoulBonker 3D
- * Optimized for Laptop / Keyboard-only play (ZQSD + JKL) and Gamepad / Mouse.
- */
+import { TouchControls } from './TouchControls.js';
 
 export class InputManager {
-  constructor(domElement, camera, groundPlane) {
+  constructor(domElement, camera, groundPlane, cameraController = null) {
     this.domElement = domElement;
     this.camera = camera;
     this.groundPlane = groundPlane;
+    this.cameraController = cameraController;
 
     // Movement axes
     this.moveVector = { x: 0, z: 0 };
     this.rawKeys = {};
+
+    // Touch controls for mobile / tablet
+    this.touchControls = new TouchControls(domElement, cameraController);
 
     // Mouse aiming
     this.mouseScreen = { x: 0, y: 0 };
@@ -206,6 +207,22 @@ export class InputManager {
       this.moveVector.z = 0;
     }
 
+    // 2. Mobile Touch Joystick Movement
+    if (this.touchControls && this.touchControls.isJoystickActive) {
+      this.moveVector.x = this.touchControls.moveVector.x;
+      this.moveVector.z = this.touchControls.moveVector.z;
+    }
+
+    // Merge Touch Actions
+    if (this.touchControls) {
+      if (this.touchControls.actions.lightAttack) this.actions.lightAttack = true;
+      if (this.touchControls.actions.heavyAttack) this.actions.heavyAttack = true;
+      if (this.touchControls.actions.dodge) this.actions.dodge = true;
+      if (this.touchControls.actions.lockOn) this.actions.lockOn = true;
+      if (this.touchControls.actions.startOrRestart) this.actions.startOrRestart = true;
+      if (this.touchControls.isChargingHeavy) this.isChargingHeavy = true;
+    }
+
     if (this.isChargingHeavy) {
       this.heavyChargeTime += dt;
     } else {
@@ -269,5 +286,9 @@ export class InputManager {
     this.actions.selectCard3 = false;
     this.actions.startOrRestart = false;
     this.actions.toggleModMenu = false;
+
+    if (this.touchControls) {
+      this.touchControls.resetSingleFrameActions();
+    }
   }
 }

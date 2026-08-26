@@ -966,6 +966,216 @@
       font-size: 10px;
       color: #94a3b8;
     }
+
+    /* === MOBILE TOUCH CONTROLS === */
+    #touch-controls-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    #touch-zone-left {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    #touch-zone-right {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 50%;
+      height: 100%;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    #touch-joystick-base {
+      position: absolute;
+      width: 124px;
+      height: 124px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 240, 255, 0.45);
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.15) 0%, rgba(12, 14, 24, 0.75) 100%);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.3);
+      transform: translate(-50%, -50%);
+      display: none;
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    #touch-joystick-thumb {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 52px;
+      height: 52px;
+      margin: -26px 0 0 -26px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #00f0ff 0%, #0077aa 100%);
+      border: 2px solid #fff;
+      box-shadow: 0 0 16px #00f0ff;
+      pointer-events: none;
+    }
+
+    #touch-buttons-cluster {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 210px;
+      height: 210px;
+      pointer-events: auto;
+      z-index: 35;
+    }
+
+    .touch-action-btn {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      background: rgba(12, 16, 28, 0.85);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      transition: transform 0.08s, background 0.1s, box-shadow 0.1s;
+    }
+
+    .touch-action-btn:active, .touch-btn-active {
+      transform: scale(0.90) !important;
+      filter: brightness(1.35) !important;
+    }
+
+    /* Attack Button (Large Cyan) */
+    #touch-btn-attack {
+      bottom: 0;
+      right: 0;
+      width: 76px;
+      height: 76px;
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.3) 0%, rgba(12, 16, 28, 0.9) 100%);
+    }
+
+    /* Dodge Button (Emerald Green) */
+    #touch-btn-dodge {
+      top: 25px;
+      right: 10px;
+      width: 60px;
+      height: 60px;
+      border-color: var(--stamina);
+      box-shadow: 0 0 15px rgba(0, 230, 118, 0.35);
+      background: radial-gradient(circle, rgba(0, 230, 118, 0.25) 0%, rgba(12, 16, 28, 0.9) 100%);
+    }
+
+    /* Heavy Button (Amber Orange) */
+    #touch-btn-heavy {
+      bottom: 10px;
+      left: 25px;
+      width: 60px;
+      height: 60px;
+      border-color: #ff9900;
+      box-shadow: 0 0 15px rgba(255, 153, 0, 0.35);
+      background: radial-gradient(circle, rgba(255, 153, 0, 0.25) 0%, rgba(12, 16, 28, 0.9) 100%);
+    }
+
+    /* Lock-On Button (Purple) */
+    #touch-btn-lock {
+      top: 10px;
+      left: 65px;
+      width: 52px;
+      height: 52px;
+      border-color: #bb44ff;
+      box-shadow: 0 0 12px rgba(187, 68, 255, 0.35);
+      background: radial-gradient(circle, rgba(187, 68, 255, 0.25) 0%, rgba(12, 16, 28, 0.9) 100%);
+    }
+
+    .touch-btn-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+    #touch-btn-attack .touch-btn-icon { font-size: 28px; }
+
+    .touch-btn-label {
+      font-size: 8.5px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+      color: #cbd5e1;
+    }
+
+    /* === RESPONSIVE MOBILE ADJUSTMENTS === */
+    @media (max-width: 900px) {
+      .player-hud {
+        top: 10px;
+        left: 10px;
+        transform: scale(0.85);
+        transform-origin: top left;
+      }
+      .wave-hud {
+        top: 10px;
+        padding: 6px 16px;
+      }
+      #wave-number { font-size: 15px; }
+      .top-right-hud {
+        top: 10px;
+        right: 10px;
+        gap: 6px;
+      }
+      .interactive-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+      .controls-hint {
+        display: none !important;
+      }
+      .hero-cards-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+        max-height: 60vh !important;
+        overflow-y: auto !important;
+        padding: 8px !important;
+      }
+      .hero-card {
+        padding: 12px !important;
+      }
+      .hero-desc {
+        display: none !important;
+      }
+      #start-modal .modal-title {
+        font-size: 19px !important;
+      }
+      #duel-class-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        max-height: 45vh !important;
+        overflow-y: auto !important;
+      }
+      #duel-modal > div {
+        padding: 16px !important;
+        width: 95% !important;
+      }
+      #duel-room-input {
+        width: 130px !important;
+      }
+      .cards-grid {
+        grid-template-columns: 1fr !important;
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+    }
   </style>
   <script src="libs/peerjs.min.js"></script>
 </head>
@@ -1017,6 +1227,7 @@
     <div class="top-right-hud">
       <div class="hud-box" id="kill-count">💀 0</div>
       <button class="interactive-btn mod-toggle-hud-btn" id="mod-hud-btn">🛠️ MODS [M]</button>
+      <button class="interactive-btn" id="fullscreen-btn" title="Plein Écran">⛶</button>
       <button class="interactive-btn" id="sound-btn">🔊 SON</button>
       <button class="interactive-btn" id="pause-btn">⏸️ PAUSE [P]</button>
     </div>
@@ -1045,6 +1256,45 @@
       </div>
       <div id="duel-opp-hp-track">
         <div id="duel-opp-hp-fill"></div>
+      </div>
+    </div>
+
+    <!-- MOBILE / TABLET TOUCH CONTROLS OVERLAY -->
+    <div id="touch-controls-overlay" style="display: none;">
+      <!-- Left Screen Area: Dynamic Virtual Joystick -->
+      <div id="touch-zone-left"></div>
+      <div id="touch-joystick-base">
+        <div id="touch-joystick-thumb"></div>
+      </div>
+
+      <!-- Right Screen Area: Camera Swipe -->
+      <div id="touch-zone-right"></div>
+
+      <!-- Right Screen Area: Touch Action Buttons Cluster -->
+      <div id="touch-buttons-cluster">
+        <!-- Dodge / Roulade -->
+        <button class="touch-action-btn" id="touch-btn-dodge" title="Roulade">
+          <span class="touch-btn-icon">⚡</span>
+          <span class="touch-btn-label">ROULADE</span>
+        </button>
+
+        <!-- Lock-On / Ciblage -->
+        <button class="touch-action-btn" id="touch-btn-lock" title="Ciblage">
+          <span class="touch-btn-icon">🎯</span>
+          <span class="touch-btn-label">CIBLE</span>
+        </button>
+
+        <!-- Heavy Attack / Lourd -->
+        <button class="touch-action-btn" id="touch-btn-heavy" title="Bonk Lourd">
+          <span class="touch-btn-icon">💥</span>
+          <span class="touch-btn-label">LOURD</span>
+        </button>
+
+        <!-- Light Attack / Bonk -->
+        <button class="touch-action-btn touch-btn-primary" id="touch-btn-attack" title="Attaque">
+          <span class="touch-btn-icon">⚔️</span>
+          <span class="touch-btn-label">BONK</span>
+        </button>
       </div>
     </div>
   </div>
