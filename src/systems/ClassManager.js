@@ -181,8 +181,16 @@ export const CHARACTER_CLASSES = {
     title: 'Assassin Fantôme',
     icon: '🗡️',
     color: '#e0aaff',
-    modelPath: 'assets/models/rogue.obj',
+    modelPath: 'assets/models/rogue_torso.obj',
     mtlPath: 'assets/models/rogue.mtl',
+    isMultiPart: true,
+    parts: {
+      torso: { model: 'assets/models/rogue_torso.obj', mtl: 'assets/models/rogue.mtl' },
+      armR: { model: 'assets/models/rogue_arm_r.obj', mtl: 'assets/models/rogue.mtl' },
+      armL: { model: 'assets/models/rogue_arm_l.obj', mtl: 'assets/models/rogue.mtl' },
+      legR: { model: 'assets/models/rogue_leg_r.obj', mtl: 'assets/models/rogue.mtl' },
+      legL: { model: 'assets/models/rogue_leg_l.obj', mtl: 'assets/models/rogue.mtl' }
+    },
     weaponModel: 'assets/models/dagger.obj',
     weaponMtl: 'assets/models/dagger.mtl',
     maxHp: 80,
