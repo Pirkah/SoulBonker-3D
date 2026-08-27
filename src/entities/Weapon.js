@@ -87,6 +87,10 @@ export class Weapon {
           model.scale.set(1.20, 1.20, 1.20);
           model.position.set(0, 0, 0);
           model.rotation.set(0, 0, 0);
+        } else if (weaponType === 'WARHAMMER') {
+          model.scale.set(1.05, 1.05, 1.05);
+          model.position.set(0, 0, 0);
+          model.rotation.set(0, 0, 0);
         } else if (weaponType === 'CLUB') {
           model.scale.set(1.15, 1.15, 1.15);
           model.position.set(0, 0.10, 0);
