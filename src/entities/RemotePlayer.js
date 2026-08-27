@@ -106,9 +106,9 @@ export class RemotePlayer {
     }
 
     if (classData.isMultiPart && classData.parts) {
-      if (classData.id === 'ANGEL' || classData.id === 'KNIGHT') {
-        this.rightArm.position.set(-0.34, 0.33, 0);
-        this.leftArm.position.set(0.34, 0.33, 0);
+      if (classData.id === 'ANGEL' || classData.id === 'KNIGHT' || classData.id === 'ARCHER') {
+        this.rightArm.position.set(-0.32, 0.33, 0);
+        this.leftArm.position.set(0.32, 0.33, 0);
         this.rightLeg.position.set(-0.14, 0.82, 0);
         this.leftLeg.position.set(0.14, 0.82, 0);
         this.rightHand.position.set(0, -0.40, 0.05);
