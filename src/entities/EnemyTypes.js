@@ -1276,28 +1276,116 @@ export class TitanGolemBoss extends Enemy {
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
-    GlobalModelLoader.loadOBJWithMTL('assets/models/titan_golem.obj', 'assets/models/titan_golem.mtl').then((model) => {
-      if (model) {
-        model.scale.set(1.8, 1.8, 1.8);
-        model.position.set(0, 3.10, 0);
-        this.modelGroup.add(model);
-      }
-    });
+    // Torso joint
+    this.torso = new THREE.Group();
+    this.torso.position.y = 0.0;
+    this.modelGroup.add(this.torso);
+
+    this.limbContainers = {
+      torso: new THREE.Group(),
+      rightArm: new THREE.Group(),
+      leftArm: new THREE.Group(),
+      rightLeg: new THREE.Group(),
+      leftLeg: new THREE.Group()
+    };
+
+    this.torso.add(this.limbContainers.torso);
+
+    // Right Arm (centered at shoulder pivot)
+    this.rightArm = new THREE.Group();
+    this.rightArm.position.set(0.55, 2.15, 0.0);
+    this.torso.add(this.rightArm);
+    this.rightArm.add(this.limbContainers.rightArm);
+
+    // Left Arm (centered at shoulder pivot)
+    this.leftArm = new THREE.Group();
+    this.leftArm.position.set(-0.55, 2.15, 0.0);
+    this.torso.add(this.leftArm);
+    this.leftArm.add(this.limbContainers.leftArm);
+
+    // Legs / Stone Pillars
+    this.rightLeg = new THREE.Group();
+    this.rightLeg.position.set(0.28, 1.15, 0.0);
+    this.modelGroup.add(this.rightLeg);
+    this.rightLeg.add(this.limbContainers.rightLeg);
+
+    this.leftLeg = new THREE.Group();
+    this.leftLeg.position.set(-0.28, 1.15, 0.0);
+    this.modelGroup.add(this.leftLeg);
+    this.leftLeg.add(this.limbContainers.leftLeg);
+
+    // Load modular OBJ parts
+    GlobalModelLoader.loadOBJWithMTL('assets/models/titan_golem_torso.obj', 'assets/models/titan_golem_torso.mtl').then(m => m && this.limbContainers.torso.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/titan_golem_arm_r.obj', 'assets/models/titan_golem_arm_r.mtl').then(m => m && this.limbContainers.rightArm.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/titan_golem_arm_l.obj', 'assets/models/titan_golem_arm_l.mtl').then(m => m && this.limbContainers.leftArm.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/titan_golem_leg_r.obj', 'assets/models/titan_golem_leg_r.mtl').then(m => m && this.limbContainers.rightLeg.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/titan_golem_leg_l.obj', 'assets/models/titan_golem_leg_l.mtl').then(m => m && this.limbContainers.leftLeg.add(m));
+
+    // Glowing Golden Cyclops Eye
+    const eyeGeo = new THREE.SphereGeometry(0.08, 8, 8);
+    this.golemEyeMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+    
+    this.eye = new THREE.Mesh(eyeGeo, this.golemEyeMat);
+    this.eye.position.set(0.0, 2.46, 0.16);
+    this.torso.add(this.eye);
+
+    // Seismic Earth Floor Rune
+    const runeGeo = new THREE.RingGeometry(2.6, 4.2, 32);
+    this.seismicRuneMat = new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
+    this.seismicRune = new THREE.Mesh(runeGeo, this.seismicRuneMat);
+    this.seismicRune.rotation.x = -Math.PI / 2;
+    this.seismicRune.position.y = 0.06;
+    this.group.add(this.seismicRune);
+
+    // Floor Shadow
+    const shadowGeo = new THREE.RingGeometry(0.3, 2.6, 24);
+    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
+    const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.05;
+    this.group.add(shadow);
 
     this.telegraphMesh.geometry.dispose();
     this.telegraphMesh.geometry = new THREE.RingGeometry(0.5, 12.0, 40);
   }
 
   animateWalk(dt) {
-    this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 4)) * 0.25;
+    const t = this.stateTimer * 4.0;
+    if (this.rightLeg && this.leftLeg) {
+      this.rightLeg.rotation.x = Math.sin(t) * 0.40;
+      this.leftLeg.rotation.x = -Math.sin(t) * 0.40;
+    }
+    if (this.rightArm && this.leftArm) {
+      this.rightArm.rotation.x = -Math.sin(t) * 0.30;
+      this.leftArm.rotation.x = Math.sin(t) * 0.30;
+    }
+    if (this.torso) {
+      this.torso.position.y = Math.abs(Math.sin(t)) * 0.12;
+      this.torso.rotation.y = Math.sin(t) * 0.04;
+    }
+    if (this.seismicRune) {
+      this.seismicRune.rotation.z += dt * 1.4;
+    }
   }
 
   animateTelegraph(progress) {
-    this.modelGroup.rotation.x = -progress * 0.5;
+    if (this.rightArm && this.leftArm) {
+      this.rightArm.rotation.x = -progress * 2.0;
+      this.leftArm.rotation.x = -progress * 2.0;
+    }
+    if (this.torso) {
+      this.torso.rotation.x = -progress * 0.4;
+    }
   }
 
   animateAttack(progress) {
-    this.modelGroup.rotation.x = progress * 0.9 - 0.3;
+    if (this.rightArm && this.leftArm) {
+      this.rightArm.rotation.x = -2.0 + progress * 2.8;
+      this.leftArm.rotation.x = -2.0 + progress * 2.8;
+    }
+    if (this.torso) {
+      this.torso.rotation.x = progress * 0.6 - 0.2;
+    }
   }
 
   performAttack(player, audio, particles) {
