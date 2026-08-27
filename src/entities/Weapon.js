@@ -69,7 +69,7 @@ export class Weapon {
           model.scale.set(1.18, 1.18, 1.18);
           model.position.set(0, 0.28, 0);
         } else if (weaponType === 'SCYTHE') {
-          model.scale.set(1.30, 1.30, 1.30);
+          model.scale.set(1.05, 1.05, 1.05);
           model.position.set(0, 0, 0);
           model.rotation.set(0, 0, 0);
         } else if (weaponType === 'ANGEL_SWORD') {
@@ -84,7 +84,7 @@ export class Weapon {
           model.scale.set(1.16, 1.16, 1.16);
           model.position.set(0, 0.22, 0);
         } else if (weaponType === 'NECRO_STAFF') {
-          model.scale.set(1.20, 1.20, 1.20);
+          model.scale.set(1.05, 1.05, 1.05);
           model.position.set(0, 0, 0);
           model.rotation.set(0, 0, 0);
         } else if (weaponType === 'WARHAMMER') {
