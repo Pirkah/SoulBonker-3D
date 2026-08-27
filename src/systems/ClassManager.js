@@ -122,8 +122,16 @@ export const CHARACTER_CLASSES = {
     title: 'Paladin de Pure Lumière',
     icon: '👼',
     color: '#ffd700',
-    modelPath: 'assets/models/angel.obj',
+    modelPath: 'assets/models/angel_torso.obj',
     mtlPath: 'assets/models/angel.mtl',
+    isMultiPart: true,
+    parts: {
+      torso: { model: 'assets/models/angel_torso.obj', mtl: 'assets/models/angel.mtl' },
+      armR: { model: 'assets/models/angel_arm_r.obj', mtl: 'assets/models/angel.mtl' },
+      armL: { model: 'assets/models/angel_arm_l.obj', mtl: 'assets/models/angel.mtl' },
+      legR: { model: 'assets/models/angel_leg_r.obj', mtl: 'assets/models/angel.mtl' },
+      legL: { model: 'assets/models/angel_leg_l.obj', mtl: 'assets/models/angel.mtl' }
+    },
     weaponModel: 'assets/models/angel_sword.obj',
     weaponMtl: 'assets/models/angel_sword.mtl',
     maxHp: 130,

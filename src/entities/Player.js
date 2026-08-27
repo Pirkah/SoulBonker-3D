@@ -107,23 +107,69 @@ export class Player {
     this.attackSpeed = classData.attackSpeed;
     this.knockbackBonus = classData.knockbackMultiplier;
 
-    // Swap 3D character mesh safely inside modelContainer with request tracking
-    if (this.modelContainer) {
-      const reqId = ++this.modelLoadRequestId;
+    // Swap 3D character mesh safely inside modelContainer or limbContainers
+    const reqId = ++this.modelLoadRequestId;
+
+    // Clear previous models
+    while (this.modelContainer.children.length > 0) {
+      this.modelContainer.remove(this.modelContainer.children[0]);
+    }
+    if (this.limbContainers) {
+      for (const key in this.limbContainers) {
+        while (this.limbContainers[key].children.length > 0) {
+          this.limbContainers[key].remove(this.limbContainers[key].children[0]);
+        }
+      }
+    }
+
+    if (classData.isMultiPart && classData.parts) {
+      if (classData.id === 'ANGEL') {
+        this.rightArm.position.set(-0.32, 0.33, 0);
+        this.leftArm.position.set(0.32, 0.33, 0);
+        this.rightLeg.position.set(-0.14, 0.82, 0);
+        this.leftLeg.position.set(0.14, 0.82, 0);
+        this.rightHand.position.set(0, -0.40, 0.05);
+      }
+
+      const p = classData.parts;
+      if (p.torso) {
+        GlobalModelLoader.loadOBJWithMTL(p.torso.model, p.torso.mtl).then((m) => {
+          if (reqId === this.modelLoadRequestId && m) this.limbContainers.torso.add(m);
+        });
+      }
+      if (p.armR) {
+        GlobalModelLoader.loadOBJWithMTL(p.armR.model, p.armR.mtl).then((m) => {
+          if (reqId === this.modelLoadRequestId && m) this.limbContainers.rightArm.add(m);
+        });
+      }
+      if (p.armL) {
+        GlobalModelLoader.loadOBJWithMTL(p.armL.model, p.armL.mtl).then((m) => {
+          if (reqId === this.modelLoadRequestId && m) this.limbContainers.leftArm.add(m);
+        });
+      }
+      if (p.legR) {
+        GlobalModelLoader.loadOBJWithMTL(p.legR.model, p.legR.mtl).then((m) => {
+          if (reqId === this.modelLoadRequestId && m) this.limbContainers.rightLeg.add(m);
+        });
+      }
+      if (p.legL) {
+        GlobalModelLoader.loadOBJWithMTL(p.legL.model, p.legL.mtl).then((m) => {
+          if (reqId === this.modelLoadRequestId && m) this.limbContainers.leftLeg.add(m);
+        });
+      }
+    } else {
+      this.rightArm.position.set(0.48, 0.32, 0);
+      this.leftArm.position.set(-0.48, 0.32, 0);
+      this.rightLeg.position.set(0.2, 0.55, 0);
+      this.leftLeg.position.set(-0.2, 0.55, 0);
+      this.rightHand.position.set(0, -0.45, 0.08);
 
       GlobalModelLoader.loadOBJWithMTL(classData.modelPath, classData.mtlPath).then((model) => {
-        if (reqId !== this.modelLoadRequestId) return; // Discard outdated model if class changed rapidly
-
-        while (this.modelContainer.children.length > 0) {
-          const c = this.modelContainer.children[0];
-          this.modelContainer.remove(c);
-        }
-
+        if (reqId !== this.modelLoadRequestId) return;
         if (model) {
           let scale = 1.35;
           if (classData.id === 'SPACEMARINE' || classData.id === 'ORK') scale = 1.48;
           else if (classData.id === 'ARCHER' || classData.id === 'ROGUE') scale = 1.30;
-          else if (classData.id === 'ANGEL') scale = 1.38;
           else if (classData.id === 'REAPER') scale = 1.36;
           else if (classData.id === 'MAGE' || classData.id === 'NECROMANCER') scale = 1.32;
           
@@ -191,6 +237,20 @@ export class Player {
     this.rightLeg = new THREE.Group();
     this.rightLeg.position.set(0.2, 0.55, 0);
     this.bodyGroup.add(this.rightLeg);
+
+    // Limb containers for modular rigged models (e.g. Angel)
+    this.limbContainers = {
+      torso: new THREE.Group(),
+      rightArm: new THREE.Group(),
+      leftArm: new THREE.Group(),
+      rightLeg: new THREE.Group(),
+      leftLeg: new THREE.Group()
+    };
+    this.torso.add(this.limbContainers.torso);
+    this.rightArm.add(this.limbContainers.rightArm);
+    this.leftArm.add(this.limbContainers.leftArm);
+    this.rightLeg.add(this.limbContainers.rightLeg);
+    this.leftLeg.add(this.limbContainers.leftLeg);
 
     // Initial class model load
     this.setClass(this.currentClass);
@@ -398,38 +458,6 @@ export class Player {
       return;
     }
 
-    // Angel-specific Celestial Hover & Wings Flight
-    if (this.currentClass.id === 'ANGEL' && this.modelContainer) {
-      if (isMoving) {
-        this.state = 'RUN';
-        const speed = this.isExhausted ? this.moveSpeed * 0.65 : this.moveSpeed;
-        this.velocity.x = worldMoveX * speed;
-        this.velocity.z = worldMoveZ * speed;
-        this.targetRotationY = Math.atan2(worldMoveX, worldMoveZ);
-
-        const wingFlap = Math.sin(this.animTime * 9.0);
-        this.modelContainer.position.y = 0.20 + wingFlap * 0.10;
-        this.modelContainer.rotation.x = 0.28; // Lean forward into angelic flight
-        this.modelContainer.rotation.z = -wingFlap * 0.05;
-        this.modelContainer.rotation.y = 0;
-
-        if (Math.random() < 0.25) {
-          particles.spawnDustRing(this.position, 0.4);
-        }
-      } else {
-        this.state = 'IDLE';
-        this.velocity.x = 0;
-        this.velocity.z = 0;
-
-        const hover = Math.sin(this.animTime * 3.0);
-        this.modelContainer.position.y = 0.16 + hover * 0.08;
-        this.modelContainer.rotation.x = Math.sin(this.animTime * 1.5) * 0.03;
-        this.modelContainer.rotation.z = Math.sin(this.animTime * 1.8) * 0.03;
-        this.modelContainer.rotation.y = 0;
-      }
-      return;
-    }
-
     if (isMoving) {
       this.state = 'RUN';
       const speed = this.isExhausted ? this.moveSpeed * 0.65 : this.moveSpeed;
@@ -437,12 +465,14 @@ export class Player {
       this.velocity.z = worldMoveZ * speed;
       this.targetRotationY = Math.atan2(worldMoveX, worldMoveZ);
 
-      const walkCycle = Math.sin(this.animTime * 14);
+      const walkSpeed = (this.currentClass.id === 'ANGEL') ? 13 : 14;
+      const walkCycle = Math.sin(this.animTime * walkSpeed);
       this.leftLeg.rotation.x = walkCycle * 0.6;
       this.rightLeg.rotation.x = -walkCycle * 0.6;
       this.leftArm.rotation.x = -walkCycle * 0.5;
-      this.rightArm.rotation.x = walkCycle * 0.3;
-      this.torso.position.y = 0.95 + Math.abs(walkCycle) * 0.08;
+      this.rightArm.rotation.x = walkCycle * 0.35;
+      this.torso.position.y = 0.95 + (this.currentClass.id === 'ANGEL' ? Math.sin(this.animTime * 8.0) * 0.08 : Math.abs(walkCycle) * 0.08);
+      this.torso.rotation.x = (this.currentClass.id === 'ANGEL') ? 0.15 : 0;
 
       if (Math.random() < 0.1) {
         particles.spawnDustRing(this.position, 0.4);
@@ -453,7 +483,8 @@ export class Player {
       this.velocity.z = 0;
 
       const breath = Math.sin(this.animTime * 3);
-      this.torso.position.y = 0.95 + breath * 0.02;
+      this.torso.position.y = 0.95 + breath * 0.03;
+      this.torso.rotation.x = 0;
       this.leftLeg.rotation.set(0, 0, 0);
       this.rightLeg.rotation.set(0, 0, 0);
       this.leftArm.rotation.set(0, 0, 0.1);
