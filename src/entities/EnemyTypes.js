@@ -29,27 +29,88 @@ export class Bonkling extends Enemy {
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
-    GlobalModelLoader.loadOBJWithMTL('assets/models/bonkling.obj', 'assets/models/bonkling.mtl').then((model) => {
-      if (model) {
-        model.scale.set(1.15, 1.15, 1.15);
-        model.position.set(0, 0.78, 0);
-        this.modelGroup.add(model);
-      }
-    });
+    // Torso joint
+    this.torso = new THREE.Group();
+    this.torso.position.y = 0.65;
+    this.modelGroup.add(this.torso);
+
+    this.limbContainers = {
+      torso: new THREE.Group(),
+      rightArm: new THREE.Group(),
+      leftArm: new THREE.Group(),
+      rightLeg: new THREE.Group(),
+      leftLeg: new THREE.Group()
+    };
+
+    this.torso.add(this.limbContainers.torso);
+
+    // Arms
+    this.rightArm = new THREE.Group();
+    this.rightArm.position.set(-0.22, 0.17, 0);
+    this.torso.add(this.rightArm);
+    this.rightArm.add(this.limbContainers.rightArm);
+
+    this.leftArm = new THREE.Group();
+    this.leftArm.position.set(0.22, 0.17, 0);
+    this.torso.add(this.leftArm);
+    this.leftArm.add(this.limbContainers.leftArm);
+
+    // Legs
+    this.rightLeg = new THREE.Group();
+    this.rightLeg.position.set(-0.12, 0.52, 0);
+    this.modelGroup.add(this.rightLeg);
+    this.rightLeg.add(this.limbContainers.rightLeg);
+
+    this.leftLeg = new THREE.Group();
+    this.leftLeg.position.set(0.12, 0.52, 0);
+    this.modelGroup.add(this.leftLeg);
+    this.leftLeg.add(this.limbContainers.leftLeg);
+
+    // Load parts
+    GlobalModelLoader.loadOBJWithMTL('assets/models/bonkling_torso.obj', 'assets/models/bonkling.mtl').then(m => m && this.limbContainers.torso.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/bonkling_arm_r.obj', 'assets/models/bonkling.mtl').then(m => m && this.limbContainers.rightArm.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/bonkling_arm_l.obj', 'assets/models/bonkling.mtl').then(m => m && this.limbContainers.leftArm.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/bonkling_leg_r.obj', 'assets/models/bonkling.mtl').then(m => m && this.limbContainers.rightLeg.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/bonkling_leg_l.obj', 'assets/models/bonkling.mtl').then(m => m && this.limbContainers.leftLeg.add(m));
   }
 
   animateWalk(dt) {
-    this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 12)) * 0.2;
-    this.modelGroup.rotation.z = Math.sin(this.stateTimer * 12) * 0.1;
+    const t = this.stateTimer * 16;
+    if (this.rightLeg && this.leftLeg) {
+      this.rightLeg.rotation.x = Math.sin(t) * 0.65;
+      this.leftLeg.rotation.x = -Math.sin(t) * 0.65;
+    }
+    if (this.rightArm && this.leftArm) {
+      this.rightArm.rotation.x = -Math.sin(t) * 0.55;
+      this.leftArm.rotation.x = Math.sin(t) * 0.55;
+    }
+    if (this.torso) {
+      this.torso.position.y = 0.65 + Math.abs(Math.sin(t)) * 0.08;
+      this.torso.rotation.z = Math.sin(t) * 0.08;
+    }
   }
 
   animateTelegraph(progress) {
-    this.modelGroup.position.y = Math.sin(progress * Math.PI) * 0.3;
-    this.modelGroup.rotation.x = -progress * 0.4;
+    if (this.rightArm) {
+      this.rightArm.rotation.x = -progress * 1.6;
+      this.rightArm.rotation.z = -progress * 0.3;
+    }
+    if (this.leftArm) {
+      this.leftArm.rotation.x = progress * 0.4;
+    }
+    if (this.torso) {
+      this.torso.rotation.x = -progress * 0.25;
+      this.torso.rotation.y = -progress * 0.35;
+    }
   }
 
   animateAttack(progress) {
-    this.modelGroup.rotation.x = progress * 0.8 - 0.3;
+    if (this.rightArm) {
+      this.rightArm.rotation.x = 1.2 - progress * 2.2;
+    }
+    if (this.torso) {
+      this.torso.rotation.x = progress * 0.4 - 0.2;
+    }
   }
 
   performAttack(player, audio, particles) {
@@ -101,23 +162,24 @@ export class HammerBrute extends Enemy {
 
   animateWalk(dt) {
     this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 6)) * 0.15;
-    this.modelGroup.rotation.z = Math.sin(this.stateTimer * 6) * 0.1;
+    this.modelGroup.rotation.z = Math.sin(this.stateTimer * 6) * 0.08;
   }
 
   animateTelegraph(progress) {
-    this.modelGroup.rotation.x = -progress * 0.5;
+    this.modelGroup.position.y = Math.sin(progress * Math.PI) * 0.5;
+    this.modelGroup.rotation.x = -progress * 0.6;
   }
 
   animateAttack(progress) {
-    this.modelGroup.rotation.x = progress * 0.7 - 0.2;
+    this.modelGroup.rotation.x = progress * 1.2 - 0.4;
   }
 
   performAttack(player, audio, particles) {
     audio.playGroundSlam();
-    particles.spawnShockwave(this.position, 6.0, 0xff0033, 0.5);
+    particles.spawnShockwave(this.position, 4.2, 0xff5500);
 
     const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
-    if (distSq <= 4.8 * 4.8) {
+    if (distSq <= (this.attackRange + 0.4) ** 2) {
       if (!player.isInvulnerable) {
         player.takeDamage(this.damage, audio, particles);
         const dx = player.position.x - this.position.x;
@@ -138,17 +200,19 @@ export class VoidMage extends Enemy {
     super(scene, x, z);
     this.type = 'VOID_MAGE';
     this.projectilesList = projectilesList;
-    this.maxHp = 80;
-    this.hp = 80;
+    this.maxHp = 90;
+    this.hp = 90;
     this.damage = 18;
-    this.moveSpeed = 3.8;
-    this.attackRange = 14.0;
-    this.preferredRange = 8.0;
-    this.telegraphDuration = 0.9;
-    this.attackDuration = 0.3;
-    this.cooldownDuration = 1.4;
-    this.scoreValue = 150;
-    this.radius = 0.8;
+    this.moveSpeed = 4.0;
+    this.attackRange = 16.0;
+    this.telegraphDuration = 0.75;
+    this.attackDuration = 0.35;
+    this.cooldownDuration = 1.3;
+    this.scoreValue = 180;
+    this.radius = 0.9;
+
+    this.teleportCooldown = 4.0;
+    this.teleportTimer = 0;
 
     this.buildMesh();
   }
@@ -159,32 +223,74 @@ export class VoidMage extends Enemy {
 
     GlobalModelLoader.loadOBJWithMTL('assets/models/void_mage.obj', 'assets/models/void_mage.mtl').then((model) => {
       if (model) {
-        model.scale.set(1.0, 1.0, 1.0);
-        model.position.set(0, 0.95, 0);
+        model.scale.set(1.15, 1.15, 1.15);
+        model.position.set(0, 1.05, 0);
         this.modelGroup.add(model);
       }
     });
+
+    const runeGeo = new THREE.RingGeometry(0.5, 1.2, 16);
+    const runeMat = new THREE.MeshBasicMaterial({ color: 0x9900ff, side: THREE.DoubleSide });
+    this.rune = new THREE.Mesh(runeGeo, runeMat);
+    this.rune.rotation.x = -Math.PI / 2;
+    this.rune.position.y = 0.05;
+    this.group.add(this.rune);
   }
 
   animateWalk(dt) {
-    this.position.y = 0.3 + Math.sin(this.stateTimer * 4) * 0.25;
-    this.modelGroup.rotation.y += dt * 3.0;
+    this.modelGroup.position.y = 0.2 + Math.sin(this.stateTimer * 4) * 0.15;
+    if (this.rune) this.rune.rotation.z += dt * 2.0;
   }
 
   animateTelegraph(progress) {
-    this.modelGroup.position.y = 0.3 + progress * 0.5;
+    this.modelGroup.position.y = 0.3 + Math.sin(progress * Math.PI) * 0.4;
+    this.modelGroup.rotation.y += 0.08;
   }
 
   animateAttack(progress) {
-    this.modelGroup.position.y = 0.6 - progress * 0.3;
+    this.modelGroup.position.y = 0.4 - progress * 0.2;
+  }
+
+  update(dt, player, audio, particles) {
+    this.teleportTimer += dt;
+    const distSq = MathUtils.distSq2D(this.position.x, this.position.z, player.position.x, player.position.z);
+    
+    if (distSq < 6.0 * 6.0 && this.teleportTimer >= this.teleportCooldown) {
+      this.teleport(audio, particles);
+      this.teleportTimer = 0;
+    }
+
+    super.update(dt, player, audio, particles);
+  }
+
+  teleport(audio, particles) {
+    particles.spawnDeathBurst(this.position, 0xaa00ff);
+    audio.playPlayerDash();
+
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 10 + Math.random() * 8;
+    this.position.x += Math.sin(angle) * dist;
+    this.position.z += Math.cos(angle) * dist;
+
+    const maxR = 26;
+    const currentR = Math.sqrt(this.position.x ** 2 + this.position.z ** 2);
+    if (currentR > maxR) {
+      this.position.x = (this.position.x / currentR) * (maxR - 2);
+      this.position.z = (this.position.z / currentR) * (maxR - 2);
+    }
+
+    this.group.position.copy(this.position);
+    particles.spawnShockwave(this.position, 2.0, 0xaa00ff);
   }
 
   performAttack(player, audio, particles) {
-    audio.playMagicCast(false);
-    particles.spawnHitSparks(this.position, 0, 0, 8);
+    audio.playFireballLaunch();
+    const spawnPos = new THREE.Vector3(this.position.x, 1.2, this.position.z);
+    const targetPos = new THREE.Vector3(player.position.x, 1.0, player.position.z);
+    const dir = new THREE.Vector3().subVectors(targetPos, spawnPos).normalize();
 
+    const proj = new Projectile(this.scene, spawnPos, dir, 14.0, this.damage, false, 0xaa00ff);
     if (this.projectilesList) {
-      const proj = new Projectile(this.scene, this.position, player.position, 13, this.damage, true);
       this.projectilesList.push(proj);
     }
   }
@@ -196,7 +302,7 @@ export class VoidMage extends Enemy {
 export class ProfesseurAmphi extends Enemy {
   constructor(scene, x, z, projectilesList) {
     super(scene, x, z);
-    this.type = 'BOSS_PROF';
+    this.type = 'PROFESSEUR_AMPHI';
     this.projectilesList = projectilesList;
     this.maxHp = 1800;
     this.hp = 1800;
@@ -226,14 +332,49 @@ export class ProfesseurAmphi extends Enemy {
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
-    // 1. Load Master Blender 3D Model (Black skin, white sweater, navy pants, glasses, pen)
-    GlobalModelLoader.loadOBJWithMTL('assets/models/prof_boss.obj', 'assets/models/prof_boss.mtl').then((model) => {
-      if (model) {
-        model.scale.set(1.15, 1.15, 1.15);
-        model.position.set(0, 0, 0);
-        this.modelGroup.add(model);
-      }
-    });
+    // Torso joint
+    this.torso = new THREE.Group();
+    this.torso.position.y = 1.20;
+    this.modelGroup.add(this.torso);
+
+    this.limbContainers = {
+      torso: new THREE.Group(),
+      rightArm: new THREE.Group(),
+      leftArm: new THREE.Group(),
+      rightLeg: new THREE.Group(),
+      leftLeg: new THREE.Group()
+    };
+
+    this.torso.add(this.limbContainers.torso);
+
+    // Arms
+    this.rightArm = new THREE.Group();
+    this.rightArm.position.set(-0.35, 0.75, 0);
+    this.torso.add(this.rightArm);
+    this.rightArm.add(this.limbContainers.rightArm);
+
+    this.leftArm = new THREE.Group();
+    this.leftArm.position.set(0.35, 0.75, 0);
+    this.torso.add(this.leftArm);
+    this.leftArm.add(this.limbContainers.leftArm);
+
+    // Legs
+    this.rightLeg = new THREE.Group();
+    this.rightLeg.position.set(-0.14, 1.18, 0);
+    this.modelGroup.add(this.rightLeg);
+    this.rightLeg.add(this.limbContainers.rightLeg);
+
+    this.leftLeg = new THREE.Group();
+    this.leftLeg.position.set(0.14, 1.18, 0);
+    this.modelGroup.add(this.leftLeg);
+    this.leftLeg.add(this.limbContainers.leftLeg);
+
+    // Load parts
+    GlobalModelLoader.loadOBJWithMTL('assets/models/prof_boss_torso.obj', 'assets/models/prof_boss.mtl').then(m => m && this.limbContainers.torso.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/prof_boss_arm_r.obj', 'assets/models/prof_boss.mtl').then(m => m && this.limbContainers.rightArm.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/prof_boss_arm_l.obj', 'assets/models/prof_boss.mtl').then(m => m && this.limbContainers.leftArm.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/prof_boss_leg_r.obj', 'assets/models/prof_boss.mtl').then(m => m && this.limbContainers.rightLeg.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/prof_boss_leg_l.obj', 'assets/models/prof_boss.mtl').then(m => m && this.limbContainers.leftLeg.add(m));
 
     // 2. 3D Shadow on the floor
     const shadowGeo = new THREE.RingGeometry(0.2, 1.8, 24);
@@ -251,17 +392,17 @@ export class ProfesseurAmphi extends Enemy {
     this.floorRune.position.y = 0.06;
     this.group.add(this.floorRune);
 
-    // 3. Glowing Laser Eyes (aligned with 3D head at Y = 2.65)
-    const eyeGeo = new THREE.SphereGeometry(0.07, 8, 8);
+    // 3. Glowing Laser Eyes (aligned with 3D head on torso)
+    const eyeGeo = new THREE.SphereGeometry(0.06, 8, 8);
     this.laserEyeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
     
     this.eyeL = new THREE.Mesh(eyeGeo, this.laserEyeMat);
-    this.eyeL.position.set(-0.16, 2.65, 0.15);
-    this.group.add(this.eyeL);
+    this.eyeL.position.set(-0.14, 1.10, 0.16);
+    this.torso.add(this.eyeL);
 
     this.eyeR = new THREE.Mesh(eyeGeo, this.laserEyeMat);
-    this.eyeR.position.set(0.16, 2.65, 0.15);
-    this.group.add(this.eyeR);
+    this.eyeR.position.set(0.14, 1.10, 0.16);
+    this.torso.add(this.eyeR);
 
     // 4. Orbiting 3D Exam Papers ("0/20")
     this.examRing = new THREE.Group();
@@ -282,20 +423,43 @@ export class ProfesseurAmphi extends Enemy {
   }
 
   animateWalk(dt) {
-    this.modelGroup.position.y = Math.abs(Math.sin(this.stateTimer * 5)) * 0.15;
-    this.modelGroup.rotation.y = Math.sin(this.stateTimer * 5) * 0.05;
+    const t = this.stateTimer * 6.0;
+    if (this.rightLeg && this.leftLeg) {
+      this.rightLeg.rotation.x = Math.sin(t) * 0.50;
+      this.leftLeg.rotation.x = -Math.sin(t) * 0.50;
+    }
+    if (this.rightArm && this.leftArm) {
+      this.rightArm.rotation.x = -Math.sin(t) * 0.40;
+      this.leftArm.rotation.x = Math.sin(t) * 0.40;
+    }
+    if (this.torso) {
+      this.torso.position.y = 1.20 + Math.abs(Math.sin(t)) * 0.08;
+      this.torso.rotation.y = Math.sin(t) * 0.05;
+    }
 
     if (this.floorRune) this.floorRune.rotation.z += dt * 1.5;
     if (this.examRing) this.examRing.rotation.y += dt * 4.0;
   }
 
   animateTelegraph(progress) {
-    this.modelGroup.rotation.x = -progress * 0.5;
+    if (this.rightArm && this.leftArm) {
+      this.rightArm.rotation.x = -progress * 1.8;
+      this.leftArm.rotation.x = -progress * 1.8;
+    }
+    if (this.torso) {
+      this.torso.rotation.x = -progress * 0.35;
+    }
     this.laserEyeMat.color.setHex(0xff0022);
   }
 
   animateAttack(progress) {
-    this.modelGroup.rotation.x = progress * 0.8 - 0.3;
+    if (this.rightArm && this.leftArm) {
+      this.rightArm.rotation.x = 1.0 - progress * 2.4;
+      this.leftArm.rotation.x = 1.0 - progress * 2.4;
+    }
+    if (this.torso) {
+      this.torso.rotation.x = progress * 0.5 - 0.2;
+    }
   }
 
   performAttack(player, audio, particles) {

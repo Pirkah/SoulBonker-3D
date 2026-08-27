@@ -1,7 +1,7 @@
 # Blender 5.2.1 LTS
 # www.blender.org
 mtllib prof_boss.mtl
-o BossProf
+o BossProf.001
 v -0.806470 1.211294 0.119315
 v -0.802886 1.190579 0.122814
 v -0.802367 1.197348 0.108102
