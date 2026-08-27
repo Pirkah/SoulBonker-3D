@@ -82,8 +82,9 @@ export class Weapon {
           model.position.set(0, 0, 0);
           model.rotation.set(0, 0, 0);
         } else if (weaponType === 'CHOPPA') {
-          model.scale.set(1.16, 1.16, 1.16);
-          model.position.set(0, 0.22, 0);
+          model.scale.set(1.15, 1.15, 1.15);
+          model.position.set(0, 0, 0);
+          model.rotation.set(0, 0, 0);
         } else if (weaponType === 'NECRO_STAFF') {
           model.scale.set(1.05, 1.05, 1.05);
           model.position.set(0, 0, 0);

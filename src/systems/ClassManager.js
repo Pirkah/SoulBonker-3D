@@ -225,8 +225,16 @@ export const CHARACTER_CLASSES = {
     title: 'Seigneur WAAAAGH !',
     icon: '🧌',
     color: '#44bb22',
-    modelPath: 'assets/models/ork.obj',
+    modelPath: 'assets/models/ork_torso.obj',
     mtlPath: 'assets/models/ork.mtl',
+    isMultiPart: true,
+    parts: {
+      torso: { model: 'assets/models/ork_torso.obj', mtl: 'assets/models/ork.mtl' },
+      armR: { model: 'assets/models/ork_arm_r.obj', mtl: 'assets/models/ork.mtl' },
+      armL: { model: 'assets/models/ork_arm_l.obj', mtl: 'assets/models/ork.mtl' },
+      legR: { model: 'assets/models/ork_leg_r.obj', mtl: 'assets/models/ork.mtl' },
+      legL: { model: 'assets/models/ork_leg_l.obj', mtl: 'assets/models/ork.mtl' }
+    },
     weaponModel: 'assets/models/ork_choppa.obj',
     weaponMtl: 'assets/models/ork_choppa.mtl',
     maxHp: 210,
