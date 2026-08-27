@@ -62,8 +62,8 @@ export class Weapon {
           model.position.set(0, 0, 0);
           model.rotation.set(0, 0, 0);
         } else if (weaponType === 'STAFF') {
-          model.scale.set(1.40, 1.40, 1.40);
-          model.position.set(0, 0.15, 0);
+          model.scale.set(1.05, 1.05, 1.05);
+          model.position.set(0, 0, 0);
           model.rotation.set(0, 0, 0);
         } else if (weaponType === 'CHAINSWORD') {
           model.scale.set(1.18, 1.18, 1.18);
