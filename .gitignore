@@ -10,3 +10,6 @@ UnrealEngine_Project/.vs/
 *_full.obj
 *_normalized.obj
 *_decimated.obj
+.env
+.env.*
+*.env
