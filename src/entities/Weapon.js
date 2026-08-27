@@ -66,8 +66,9 @@ export class Weapon {
           model.position.set(0, 0, 0);
           model.rotation.set(0, 0, 0);
         } else if (weaponType === 'CHAINSWORD') {
-          model.scale.set(1.18, 1.18, 1.18);
-          model.position.set(0, 0.28, 0);
+          model.scale.set(1.10, 1.10, 1.10);
+          model.position.set(0, 0, 0);
+          model.rotation.set(0, 0, 0);
         } else if (weaponType === 'SCYTHE') {
           model.scale.set(1.05, 1.05, 1.05);
           model.position.set(0, 0, 0);

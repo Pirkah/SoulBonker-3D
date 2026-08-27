@@ -123,7 +123,7 @@ export class Player {
     }
 
     if (classData.isMultiPart && classData.parts) {
-      if (classData.id === 'ANGEL' || classData.id === 'KNIGHT' || classData.id === 'ARCHER' || classData.id === 'MAGE' || classData.id === 'ROGUE' || classData.id === 'REAPER' || classData.id === 'NECROMANCER') {
+      if (classData.id === 'ANGEL' || classData.id === 'KNIGHT' || classData.id === 'ARCHER' || classData.id === 'MAGE' || classData.id === 'ROGUE' || classData.id === 'REAPER' || classData.id === 'NECROMANCER' || classData.id === 'SPACEMARINE') {
         this.rightArm.position.set(-0.32, 0.33, 0);
         this.leftArm.position.set(0.32, 0.33, 0);
         this.rightLeg.position.set(-0.14, 0.82, 0);

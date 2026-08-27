@@ -6,3 +6,7 @@ UnrealEngine_Project/Binaries/
 UnrealEngine_Project/Intermediate/
 UnrealEngine_Project/Saved/
 UnrealEngine_Project/.vs/
+*_raw.glb
+*_full.obj
+*_normalized.obj
+*_decimated.obj

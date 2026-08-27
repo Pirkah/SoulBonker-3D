@@ -1,6 +1,6 @@
 # Blender 5.2.1 LTS
 # www.blender.org
-mtllib chainsword.mtl
+mtllib relic_sword.mtl
 o Relic_Sword
 v -0.179202 0.127783 -0.061336
 v -0.193586 0.133757 -0.057782
