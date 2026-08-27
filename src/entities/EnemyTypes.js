@@ -973,29 +973,127 @@ export class LichKingBoss extends Enemy {
     this.modelGroup = new THREE.Group();
     this.group.add(this.modelGroup);
 
-    GlobalModelLoader.loadOBJWithMTL('assets/models/lich_king.obj', 'assets/models/lich_king.mtl').then((model) => {
-      if (model) {
-        model.scale.set(1.5, 1.5, 1.5);
-        model.position.set(0, 2.05, 0);
-        this.modelGroup.add(model);
-      }
-    });
+    // Torso joint
+    this.torso = new THREE.Group();
+    this.torso.position.y = 0.0;
+    this.modelGroup.add(this.torso);
+
+    this.limbContainers = {
+      torso: new THREE.Group(),
+      rightArm: new THREE.Group(),
+      leftArm: new THREE.Group(),
+      rightLeg: new THREE.Group(),
+      leftLeg: new THREE.Group()
+    };
+
+    this.torso.add(this.limbContainers.torso);
+
+    // Right Arm (centered at shoulder pivot)
+    this.rightArm = new THREE.Group();
+    this.rightArm.position.set(0.30, 1.74, 0.16);
+    this.torso.add(this.rightArm);
+    this.rightArm.add(this.limbContainers.rightArm);
+
+    // Left Arm (centered at shoulder pivot)
+    this.leftArm = new THREE.Group();
+    this.leftArm.position.set(-0.32, 1.74, 0.16);
+    this.torso.add(this.leftArm);
+    this.leftArm.add(this.limbContainers.leftArm);
+
+    // Legs / Lower Robe base
+    this.rightLeg = new THREE.Group();
+    this.rightLeg.position.set(0.15, 0.35, 0);
+    this.modelGroup.add(this.rightLeg);
+    this.rightLeg.add(this.limbContainers.rightLeg);
+
+    this.leftLeg = new THREE.Group();
+    this.leftLeg.position.set(-0.15, 0.35, 0);
+    this.modelGroup.add(this.leftLeg);
+    this.leftLeg.add(this.limbContainers.leftLeg);
+
+    // Load modular OBJ parts
+    GlobalModelLoader.loadOBJWithMTL('assets/models/lich_king_torso.obj', 'assets/models/lich_king_torso.mtl').then(m => m && this.limbContainers.torso.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/lich_king_arm_r.obj', 'assets/models/lich_king_arm_r.mtl').then(m => m && this.limbContainers.rightArm.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/lich_king_arm_l.obj', 'assets/models/lich_king_arm_l.mtl').then(m => m && this.limbContainers.leftArm.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/lich_king_leg_r.obj', 'assets/models/lich_king_leg_r.mtl').then(m => m && this.limbContainers.rightLeg.add(m));
+    GlobalModelLoader.loadOBJWithMTL('assets/models/lich_king_leg_l.obj', 'assets/models/lich_king_leg_l.mtl').then(m => m && this.limbContainers.leftLeg.add(m));
+
+    // Glowing Icy Cyan Skull Eyes
+    const eyeGeo = new THREE.SphereGeometry(0.045, 8, 8);
+    this.iceEyeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+    
+    this.eyeL = new THREE.Mesh(eyeGeo, this.iceEyeMat);
+    this.eyeL.position.set(-0.08, 1.96, 0.14);
+    this.torso.add(this.eyeL);
+
+    this.eyeR = new THREE.Mesh(eyeGeo, this.iceEyeMat);
+    this.eyeR.position.set(0.08, 1.96, 0.14);
+    this.torso.add(this.eyeR);
+
+    // Ethereal Necrotic Floor Rune
+    const runeGeo = new THREE.RingGeometry(2.0, 3.2, 32);
+    this.frostRuneMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
+    this.frostRune = new THREE.Mesh(runeGeo, this.frostRuneMat);
+    this.frostRune.rotation.x = -Math.PI / 2;
+    this.frostRune.position.y = 0.06;
+    this.group.add(this.frostRune);
+
+    // Shadow on floor
+    const shadowGeo = new THREE.RingGeometry(0.2, 2.0, 24);
+    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
+    const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.05;
+    this.group.add(shadow);
 
     this.telegraphMesh.geometry.dispose();
     this.telegraphMesh.geometry = new THREE.RingGeometry(0.4, 9.0, 36);
   }
 
   animateWalk(dt) {
-    this.position.y = 0.5 + Math.sin(this.stateTimer * 4) * 0.3;
-    this.modelGroup.rotation.y += dt * 1.5;
+    const t = this.stateTimer * 3.5;
+    // Eerie floating hover motion
+    this.position.y = 0.6 + Math.sin(t) * 0.25;
+
+    if (this.rightArm && this.leftArm) {
+      this.rightArm.rotation.x = Math.sin(t) * 0.20;
+      this.rightArm.rotation.z = Math.sin(t * 0.5) * 0.10;
+      this.leftArm.rotation.x = -Math.sin(t) * 0.20;
+      this.leftArm.rotation.z = -Math.sin(t * 0.5) * 0.10;
+    }
+    if (this.torso) {
+      this.torso.rotation.y = Math.sin(t * 0.7) * 0.08;
+      this.torso.rotation.x = 0.05;
+    }
+    if (this.frostRune) {
+      this.frostRune.rotation.z += dt * 1.6;
+    }
   }
 
   animateTelegraph(progress) {
-    this.position.y = 0.8 + progress * 0.4;
+    // Rise high and raise casting skeletal arms
+    this.position.y = 0.8 + progress * 0.6;
+    if (this.rightArm && this.leftArm) {
+      this.rightArm.rotation.x = -progress * 1.9;
+      this.rightArm.rotation.z = progress * 0.4;
+      this.leftArm.rotation.x = -progress * 1.9;
+      this.leftArm.rotation.z = -progress * 0.4;
+    }
+    if (this.torso) {
+      this.torso.rotation.x = -progress * 0.3;
+    }
   }
 
   animateAttack(progress) {
-    this.position.y = 0.6;
+    // Thrust spellcast forward
+    this.position.y = 0.7;
+    if (this.rightArm && this.leftArm) {
+      this.rightArm.rotation.x = -1.9 + progress * 2.8;
+      this.leftArm.rotation.x = -1.9 + progress * 2.8;
+    }
+    if (this.torso) {
+      this.torso.rotation.x = progress * 0.4 - 0.2;
+    }
   }
 
   performAttack(player, audio, particles) {
