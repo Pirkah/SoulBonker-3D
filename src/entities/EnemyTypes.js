@@ -229,8 +229,8 @@ export class ProfesseurAmphi extends Enemy {
     // 1. Load Master Blender 3D Model (Black skin, white sweater, navy pants, glasses, pen)
     GlobalModelLoader.loadOBJWithMTL('assets/models/prof_boss.obj', 'assets/models/prof_boss.mtl').then((model) => {
       if (model) {
-        model.scale.set(1.4, 1.4, 1.4);
-        model.position.set(0, 1.85, 0);
+        model.scale.set(1.15, 1.15, 1.15);
+        model.position.set(0, 0, 0);
         this.modelGroup.add(model);
       }
     });
@@ -251,16 +251,16 @@ export class ProfesseurAmphi extends Enemy {
     this.floorRune.position.y = 0.06;
     this.group.add(this.floorRune);
 
-    // 3. Glowing Laser Eyes (aligned with 3D head at Y = 4.0)
+    // 3. Glowing Laser Eyes (aligned with 3D head at Y = 2.65)
     const eyeGeo = new THREE.SphereGeometry(0.07, 8, 8);
     this.laserEyeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
     
     this.eyeL = new THREE.Mesh(eyeGeo, this.laserEyeMat);
-    this.eyeL.position.set(-0.16, 4.0, 0.15);
+    this.eyeL.position.set(-0.16, 2.65, 0.15);
     this.group.add(this.eyeL);
 
     this.eyeR = new THREE.Mesh(eyeGeo, this.laserEyeMat);
-    this.eyeR.position.set(0.16, 4.0, 0.15);
+    this.eyeR.position.set(0.16, 2.65, 0.15);
     this.group.add(this.eyeR);
 
     // 4. Orbiting 3D Exam Papers ("0/20")
