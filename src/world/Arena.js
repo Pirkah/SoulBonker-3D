@@ -341,8 +341,8 @@ export class Arena {
 
     let lightColor = 0xff6611;
     let flameColor = 0xffaa33;
-    let modelPath = null;
-    let mtlPath = null;
+    let modelPath = 'assets/models/arena_brazier.obj';
+    let mtlPath = 'assets/models/arena_brazier.mtl';
 
     if (theme === 'ROMAN_COLOSSEUM') {
       lightColor = 0xff7711;
@@ -376,6 +376,12 @@ export class Arena {
             torchGroup.add(m);
           }
         });
+
+        const flameGeo = new THREE.DodecahedronGeometry(0.55);
+        const flameMat = new THREE.MeshBasicMaterial({ color: flameColor });
+        const flameMesh = new THREE.Mesh(flameGeo, flameMat);
+        flameMesh.position.y = 2.55;
+        torchGroup.add(flameMesh);
       } else {
         const standGeo = new THREE.CylinderGeometry(0.4, 0.6, 3.5, 8);
         const standMat = new THREE.MeshStandardMaterial({ color: 0x222226, metalness: 0.7 });
